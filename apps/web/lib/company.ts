@@ -80,7 +80,7 @@ export async function getUserCompanies(): Promise<CompanySummary[]> {
       id: c.slug,
       slug: c.slug,
       name: c.name,
-      type: "SUBSIDIARY" as const,
+      type: c.type,
       logoUrl: null,
       primaryColor: null,
       isPrimary: false,

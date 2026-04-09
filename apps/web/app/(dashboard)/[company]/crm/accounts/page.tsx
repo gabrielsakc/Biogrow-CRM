@@ -10,7 +10,7 @@ import { Badge } from "@biogrow/ui/components/badge";
 import { EmptyState } from "@biogrow/ui/feedback/empty-state";
 import { Avatar } from "@biogrow/ui/components/avatar";
 
-const TYPE_VARIANT: Record<string, "default" | "primary" | "success" | "warning" | "danger"> = {
+const TYPE_VARIANT: Record<string, "default" | "primary" | "secondary" | "success" | "warning" | "danger"> = {
   PROSPECT: "secondary",
   CUSTOMER: "success",
   PARTNER: "primary",

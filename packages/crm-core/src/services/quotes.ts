@@ -1,11 +1,11 @@
-import { db } from "@biogrow/database";
+import { db, QuoteStatus } from "@biogrow/database";
 
 export interface QuoteListParams {
   companyId: string;
   ownerId?: string;
   accountId?: string;
   opportunityId?: string;
-  status?: string;
+  status?: QuoteStatus;
   page?: number;
   pageSize?: number;
 }

@@ -23,33 +23,34 @@ export const mergeRouters = t.mergeRouters;
 // ─── Public procedure (no auth) ───────────────────────────────────────────────
 export const publicProcedure = t.procedure;
 
-// ─── Protected procedure (requires Clerk auth + DB user) ─────────────────────
-const enforceIsAuthed = t.middleware(({ ctx, next }) => {
-  if (!ctx.clerkId || !ctx.userId) {
+// ─── Protected procedure (requires auth) ─────────────────────────────────────────────
+export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.userId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  return next({ ctx: { ...ctx, clerkId: ctx.clerkId, userId: ctx.userId } });
+  return next({ ctx: { ...ctx, userId: ctx.userId } });
 });
 
-export const protectedProcedure = t.procedure.use(enforceIsAuthed);
-
 // ─── Company-scoped procedure ─────────────────────────────────────────────────
-// Resolves the user's permissions for a given companyId (passed in input).
-// The router must include `companyId: z.string()` in its input.
-const enforceCompanyAccess = enforceIsAuthed.unstable_pipe(
-  async ({ ctx, rawInput, next }) => {
-    const input = rawInput as { companyId?: string };
-    const companyId = input?.companyId;
+// Use this for procedures that need companyId in the input.
+// It validates auth and resolves user permissions for the company.
+export const companyProcedure = t.procedure
+  .use(({ ctx, next }) => {
+    if (!ctx.userId) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    return next({ ctx: { ...ctx, userId: ctx.userId } });
+  })
+  .use(async ({ ctx, input, next }) => {
+    const typedInput = input as { companyId?: string };
+    const companyId = typedInput?.companyId;
 
     if (!companyId) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "companyId is required" });
     }
 
-    // Resolve user permissions for this company (cached per-request via closure)
+    // Resolve user permissions for this company
     const resolvedUser = await resolveUserPermissions(ctx.userId);
 
     return next({ ctx: { ...ctx, companyId, resolvedUser } });
-  }
-);
-
-export const companyProcedure = t.procedure.use(enforceCompanyAccess);
+  });
