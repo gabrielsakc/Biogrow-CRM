@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Biogrow Platform — Dev Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+    .header { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 20px 40px; display: flex; align-items: center; gap: 12px; }
+    .logo { width: 32px; height: 32px; background: #059669; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .logo svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .header h1 { font-size: 18px; font-weight: 700; color: #0f172a; }
+    .header span { font-size: 13px; color: #64748b; margin-left: 4px; }
+
+    .container { max-width: 860px; margin: 0 auto; padding: 32px 24px; }
+
+    .phase { display: inline-block; background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; letter-spacing: .04em; margin-bottom: 20px; text-transform: uppercase; }
+
+    h2 { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    h2 .num { width: 22px; height: 22px; background: #059669; color: #fff; border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card-note { background: #fffbeb; border-color: #fcd34d; }
+    .card-danger { background: #fef2f2; border-color: #fca5a5; }
+
+    pre { background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 14px 16px; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 8px 0; }
+    code { font-family: "SF Mono", "Fira Code", Consolas, monospace; }
+    pre code { background: none; color: inherit; font-size: inherit; }
+    code:not(pre code) { background: #f1f5f9; color: #0369a1; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+    .env-row { display: grid; grid-template-columns: 200px 1fr; gap: 8px; align-items: start; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+    .env-row:last-child { border-bottom: none; }
+    .env-key { font-family: "SF Mono", Consolas, monospace; font-size: 12px; color: #0369a1; font-weight: 600; }
+    .env-desc { font-size: 12.5px; color: #64748b; }
+    .env-required { color: #dc2626; font-size: 10px; font-weight: 700; letter-spacing: .05em; }
+
+    .route-grid { display: grid; grid-template-columns: 220px 1fr; gap: 1px; background: #e2e8f0; border-radius: 8px; overflow: hidden; }
+    .route-row { display: contents; }
+    .route-row > div { background: #fff; padding: 8px 12px; font-size: 12.5px; }
+    .route-row:first-child > div { background: #f8fafc; font-weight: 600; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+    .route-path { font-family: "SF Mono", Consolas, monospace; color: #0369a1; font-size: 12px; }
+    .route-desc { color: #475569; }
+
+    .stack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .stack-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+    .stack-item .label { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+    .stack-item .value { font-size: 13px; font-weight: 600; color: #0f172a; }
+
+    .tip { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: #92400e; margin-top: 8px; }
+    .tip svg { flex-shrink: 0; margin-top: 1px; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-gray { background: #f1f5f9; color: #475569; }
+
+    footer { text-align: center; padding: 32px; font-size: 12px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </div>
+  <div>
+    <h1>Biogrow Platform <span>— Dev Guide</span></h1>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="phase">Fase 2 — CRM Core ✓</div>
+
+  <!-- STACK -->
+  <div class="card" style="margin-bottom:24px;">
+    <h2 style="margin-bottom:14px;"><span class="num">i</span> Stack</h2>
+    <div class="stack-grid">
+      <div class="stack-item"><div class="label">Framework</div><div class="value">Next.js 14 App Router</div></div>
+      <div class="stack-item"><div class="label">Monorepo</div><div class="value">Turborepo + pnpm</div></div>
+      <div class="stack-item"><div class="label">ORM</div><div class="value">Prisma 5 + PostgreSQL</div></div>
+      <div class="stack-item"><div class="label">Auth</div><div class="value">Clerk</div></div>
+      <div class="stack-item"><div class="label">API</div><div class="value">tRPC v11</div></div>
+      <div class="stack-item"><div class="label">Charts</div><div class="value">ECharts 5</div></div>
+    </div>
+  </div>
+
+  <!-- STEP 1 — PREREQS -->
+  <div class="card">
+    <h2><span class="num">1</span> Requisitos previos</h2>
+    <p style="font-size:13px; color:#475569; margin-bottom:12px;">Asegúrate de tener instalado:</p>
+    <pre><code># Node.js 20+
+node --version   # debe ser >= 20.0.0
+
+# pnpm 8+
+npm install -g pnpm@8
+pnpm --version
+
+# PostgreSQL 16 corriendo localmente (o Supabase / Railway)
+psql --version</code></pre>
+  </div>
+
+  <!-- STEP 2 — INSTALL -->
+  <div class="card">
+    <h2><span class="num">2</span> Instalar dependencias</h2>
+    <pre><code>cd "d:/CRM BIOGROW/biogrow-platform"
+pnpm install</code></pre>
+  </div>
+
+  <!-- STEP 3 — ENV -->
+  <div class="card">
+    <h2><span class="num">3</span> Variables de entorno</h2>
+    <p style="font-size:13px;color:#475569;margin-bottom:14px;">Crea el archivo <code>apps/web/.env.local</code> con estas variables:</p>
+    <pre><code># Base de datos
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/biogrow_dev"
+
+# Clerk (obtener en clerk.com → dashboard → API keys)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
+CLERK_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
+NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL="/select-company"
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL="/select-company"</code></pre>
+
+    <div style="margin-top:14px;">
+      <div class="env-row">
+        <div class="env-key">DATABASE_URL <span class="env-required">REQUERIDO</span></div>
+        <div class="env-desc">Connection string de PostgreSQL. Cambia USER, PASSWORD y nombre de DB.</div>
+      </div>
+      <div class="env-row">
+        <div class="env-key">CLERK_SECRET_KEY <span class="env-required">REQUERIDO</span></div>
+        <div class="env-desc">Clave secreta de Clerk. Solo en servidor. Nunca exponerla al cliente.</div>
+      </div>
+      <div class="env-row">
+        <div class="env-key">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY <span class="env-required">REQUERIDO</span></div>
+        <div class="env-desc">Clave pública de Clerk. Expuesta al cliente (prefijo NEXT_PUBLIC_).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 — DB -->
+  <div class="card">
+    <h2><span class="num">4</span> Base de datos</h2>
+    <p style="font-size:13px;color:#475569;margin-bottom:10px;">Crea la base de datos y aplica el schema:</p>
+    <pre><code># Opción A — push directo (desarrollo rápido, sin migración formal)
+pnpm db:push
+
+# Opción B — migración formal (recomendado)
+pnpm db:migrate
+
+# Generar cliente Prisma (automático en dev, pero útil si cambias schema)
+pnpm db:generate
+
+# Poblar datos iniciales (empresas, roles, permisos)
+pnpm db:seed</code></pre>
+
+    <div class="tip">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>El seed crea las 8 empresas del grupo, sus roles base (ADMIN, MANAGER, REP) y asigna los permisos CRM. Ejecutarlo <strong>siempre</strong> en un entorno nuevo.</span>
+    </div>
+  </div>
+
+  <!-- STEP 5 — RUN -->
+  <div class="card">
+    <h2><span class="num">5</span> Ejecutar en desarrollo</h2>
+    <pre><code># Desde la raíz del monorepo — levanta TODAS las apps
+pnpm dev
+
+# O solo la web app (más rápido)
+cd apps/web
+pnpm dev</code></pre>
+
+    <p style="font-size:13px;color:#475569;margin-top:10px;">La app queda disponible en:</p>
+    <pre><code>http://localhost:3000</code></pre>
+  </div>
+
+  <!-- STEP 6 — ROUTES -->
+  <div class="card">
+    <h2><span class="num">6</span> Rutas disponibles</h2>
+    <div class="route-grid">
+      <div class="route-row">
+        <div>Ruta</div>
+        <div>Descripción</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/sign-in</div>
+        <div class="route-desc">Login con Clerk</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/select-company</div>
+        <div class="route-desc">Selector de empresa para el usuario autenticado</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/dashboard</div>
+        <div class="route-desc">Dashboard principal de empresa</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/crm/dashboard</div>
+        <div class="route-desc">Dashboard CRM con KPIs y gráficas ECharts</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/crm/leads</div>
+        <div class="route-desc">Lista de leads con estado y fuente</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/crm/accounts</div>
+        <div class="route-desc">Cuentas con health score y contadores</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/crm/contacts</div>
+        <div class="route-desc">Contactos vinculados a cuentas</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/crm/pipeline</div>
+        <div class="route-desc">Kanban por etapas de pipeline</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/crm/opportunities</div>
+        <div class="route-desc">Lista de oportunidades con monto y categoría</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/crm/activities</div>
+        <div class="route-desc">Feed de actividades recientes</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/crm/tasks</div>
+        <div class="route-desc">Tareas con prioridad, estado y vencimiento</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/crm/quotes</div>
+        <div class="route-desc">Cotizaciones con estado y totales</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/crm/quotes/new</div>
+        <div class="route-desc">Builder de cotizaciones con líneas dinámicas</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/[company]/crm/forecast</div>
+        <div class="route-desc">Forecast por categoría: Pipeline / Commit / Cerrado</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/holding</div>
+        <div class="route-desc">Dashboard consolidado del Grupo Biogrow</div>
+      </div>
+      <div class="route-row">
+        <div class="route-path">/api/trpc/[trpc]</div>
+        <div class="route-desc">Endpoint tRPC (batch HTTP)</div>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:#94a3b8;margin-top:10px;"><code>[company]</code> es el slug de empresa: <code>biogrow-fodder</code>, <code>biogrow-feed</code>, <code>bg-data-builders</code>, etc.</p>
+  </div>
+
+  <!-- STEP 7 — OTHER COMMANDS -->
+  <div class="card">
+    <h2><span class="num">7</span> Comandos útiles</h2>
+    <pre><code># Build de producción
+pnpm build
+
+# Ver y editar la base de datos visualmente
+pnpm db:studio       # abre en http://localhost:5555
+
+# Lint
+pnpm lint
+
+# Typecheck estricto
+cd apps/web && pnpm typecheck
+
+# Limpiar node_modules y caches
+pnpm clean</code></pre>
+  </div>
+
+  <!-- COMMON ERRORS -->
+  <div class="card card-danger">
+    <h2><span class="num" style="background:#dc2626;">!</span> Errores comunes</h2>
+    <div style="font-size:13px; color:#7f1d1d; line-height:1.8; margin-top:4px;">
+      <p><strong>P2021 — Table not found:</strong> ejecuta <code>pnpm db:push</code> o <code>pnpm db:migrate</code>.</p>
+      <p><strong>Clerk 401 — Invalid publishable key:</strong> verifica que <code>.env.local</code> existe en <code>apps/web/</code> (no en la raíz).</p>
+      <p><strong>Cannot find module '@biogrow/...':</strong> ejecuta <code>pnpm install</code> desde la raíz del monorepo.</p>
+      <p><strong>Port 3000 already in use:</strong> usa <code>pnpm dev -- -p 3001</code> o mata el proceso con <code>npx kill-port 3000</code>.</p>
+    </div>
+  </div>
+
+  <!-- SLUGS -->
+  <div class="card card-note">
+    <h2><span class="num" style="background:#d97706;">s</span> Slugs de empresa disponibles</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+      <span class="badge badge-green">biogrow-fodder</span>
+      <span class="badge badge-green">biogrow-feed</span>
+      <span class="badge badge-green">biogrow-greens</span>
+      <span class="badge badge-blue">bg-data-builders</span>
+      <span class="badge badge-blue">biogrow-robotics</span>
+      <span class="badge badge-blue">modular-loft</span>
+      <span class="badge badge-gray">prime-blocks</span>
+      <span class="badge badge-gray">cattle-grow</span>
+      <span class="badge badge-gray">holding</span>
+    </div>
+    <p style="font-size:12px;color:#92400e;margin-top:10px;">Ejemplo de URL: <code>http://localhost:3000/biogrow-fodder/crm/dashboard</code></p>
+  </div>
+
+</div>
+
+<footer>Biogrow Platform &mdash; Internal Dev Reference &mdash; Fase 2: CRM Core</footer>
+
+</body>
+</html>

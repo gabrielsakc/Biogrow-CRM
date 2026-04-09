@@ -1,0 +1,53 @@
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getAllCompanySlugs } from "./company-configs";
+
+// ─── Route matchers ───────────────────────────────────────────────────────────
+
+const isPublicRoute = createRouteMatcher([
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/webhooks(.*)",
+]);
+
+// ─── Middleware ───────────────────────────────────────────────────────────────
+
+export default clerkMiddleware((auth, req: NextRequest) => {
+  // Allow public routes without auth
+  if (isPublicRoute(req)) return NextResponse.next();
+
+  // All other routes require authentication
+  auth().protect();
+
+  const { pathname } = req.nextUrl;
+  const segments = pathname.split("/").filter(Boolean);
+  const potentialSlug = segments[0];
+
+  // Reserved top-level paths — not company slugs
+  const reservedPaths = new Set([
+    "select-company",
+    "complete-profile",
+    "holding",
+    "api",
+    "sign-in",
+    "sign-up",
+  ]);
+
+  if (potentialSlug && !reservedPaths.has(potentialSlug)) {
+    const validSlugs = getAllCompanySlugs();
+    if (!validSlugs.includes(potentialSlug)) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/select-company";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  return NextResponse.next();
+});
+
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
+};

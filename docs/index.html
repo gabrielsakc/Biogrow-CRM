@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Biogrow CRM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <style>
+    :root { --emerald: #059669; --emerald-light: #d1fae5; --emerald-dark: #065f46; }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; }
+    .sidebar { width: 240px; min-height: 100vh; background: #fff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 40; }
+    .main { margin-left: 240px; min-height: 100vh; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: #475569; transition: all .15s; -webkit-user-select: none; user-select: none; }
+    .nav-item:hover { background: #f1f5f9; color: #0f172a; }
+    .nav-item.active { background: #d1fae5; color: #065f46; }
+    .nav-child { padding: 6px 12px; border-radius: 6px; font-size: 12.5px; cursor: pointer; color: #64748b; transition: all .15s; -webkit-user-select: none; user-select: none; }
+    .nav-child:hover { background: #f8fafc; color: #0f172a; }
+    .nav-child.active { color: #059669; font-weight: 600; background: #f0fdf4; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .kpi-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; }
+    .health-bar { height: 6px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
+    .health-fill { height: 100%; border-radius: 999px; }
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-yellow { background: #fef3c7; color: #92400e; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-gray { background: #f1f5f9; color: #475569; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; }
+    .table-row:hover { background: #f8fafc; }
+    .kanban-col { min-width: 240px; max-width: 240px; background: #f8fafc; border-radius: 10px; padding: 12px; }
+    .kanban-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: box-shadow .15s; }
+    .kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .avatar-sm { width: 22px; height: 22px; font-size: 9px; }
+    .activity-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .trend-up { color: #059669; }
+    .trend-down { color: #dc2626; }
+    input, select, textarea { outline: none; }
+    input:focus, select:focus { border-color: #059669 !important; box-shadow: 0 0 0 2px rgba(5,150,105,.15); }
+    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; align-items: center; justify-content: center; }
+    .modal-backdrop.open { display: flex; }
+    .modal { background: #fff; border-radius: 16px; padding: 24px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+  </style>
+</head>
+<body>
+
+<!-- ───────────── SIDEBAR ───────────── -->
+<aside class="sidebar">
+  <div class="flex items-center gap-3 px-4 py-4 border-b border-slate-100">
+    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#059669">
+      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+    </div>
+    <div>
+      <div class="text-sm font-bold text-slate-900">Biogrow CRM</div>
+      <div class="text-xs text-slate-400">Biogrow Fodder</div>
+    </div>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+    <div class="nav-item active" onclick="go('dashboard')">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+
+    <!-- CRM collapsible -->
+    <div>
+      <div class="nav-item" id="crm-toggle" onclick="toggleCrm()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <span class="flex-1">CRM</span>
+        <svg id="crm-arrow" class="w-3.5 h-3.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div id="crm-children" class="ml-6 pl-3 border-l border-slate-100 space-y-0.5 mt-0.5 hidden">
+        <div class="nav-child active" onclick="go('leads')">Leads</div>
+        <div class="nav-child" onclick="go('accounts')">Cuentas</div>
+        <div class="nav-child" onclick="go('contacts')">Contactos</div>
+        <div class="nav-child" onclick="go('pipeline')">Pipeline</div>
+        <div class="nav-child" onclick="go('opportunities')">Oportunidades</div>
+        <div class="nav-child" onclick="go('activities')">Actividades</div>
+        <div class="nav-child" onclick="go('tasks')">Tareas</div>
+        <div class="nav-child" onclick="go('quotes')">Cotizaciones</div>
+        <div class="nav-child" onclick="go('forecast')">Forecast</div>
+      </div>
+    </div>
+
+    <!-- Inventario collapsible -->
+    <div>
+      <div class="nav-item" id="inv-toggle" onclick="toggleInventario()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+        <span class="flex-1">Inventario</span>
+        <svg id="inv-arrow" class="w-3.5 h-3.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div id="inv-children" class="ml-6 pl-3 border-l border-slate-100 space-y-0.5 mt-0.5 hidden">
+        <div class="nav-child" onclick="go('products')">Productos</div>
+        <div class="nav-child" onclick="go('vendors')">Proveedores</div>
+        <div class="nav-child" onclick="go('warehouses')">Almacenes</div>
+        <div class="nav-child" onclick="go('stock')">Stock Actual</div>
+        <div class="nav-child" onclick="go('movements')">Movimientos</div>
+      </div>
+    </div>
+
+    <!-- Ventas collapsible -->
+    <div>
+      <div class="nav-item" id="sales-toggle" onclick="toggleSales()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        <span class="flex-1">Ventas</span>
+        <svg id="sales-arrow" class="w-3.5 h-3.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div id="sales-children" class="ml-6 pl-3 border-l border-slate-100 space-y-0.5 mt-0.5 hidden">
+        <div class="nav-child" onclick="go('sales-orders')">Órdenes de Venta</div>
+        <div class="nav-child" onclick="go('purchase-orders')">Órdenes de Compra</div>
+      </div>
+    </div>
+
+    <!-- Finanzas collapsible -->
+    <div>
+      <div class="nav-item" id="fin-toggle" onclick="toggleFinanzas()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6"/></svg>
+        <span class="flex-1">Finanzas</span>
+        <svg id="fin-arrow" class="w-3.5 h-3.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div id="fin-children" class="ml-6 pl-3 border-l border-slate-100 space-y-0.5 mt-0.5 hidden">
+        <div class="nav-child" onclick="go('invoices')">Facturas</div>
+        <div class="nav-child" onclick="go('finance')">Dashboard Financiero</div>
+      </div>
+    </div>
+    <div class="nav-item" onclick="go('reports')">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Reportes
+    </div>
+    <div class="nav-item" onclick="go('settings')">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Configuración
+    </div>
+  </nav>
+
+  <div class="p-3 border-t border-slate-100">
+    <div class="nav-item" onclick="go('holding')">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+      Vista Holding
+    </div>
+    <div class="flex items-center gap-2.5 px-2 py-2 mt-1">
+      <div class="avatar text-xs" style="background:#7c3aed; width:32px; height:32px; font-size:12px;">GA</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs font-semibold text-slate-800 truncate">Gabriel Admin</div>
+        <div class="text-xs text-slate-400 truncate">Admin</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ───────────── MAIN ───────────── -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="bg-white border-b border-slate-200 px-8 py-3.5 flex items-center justify-between sticky top-0 z-30">
+    <div id="topbar-title" class="text-sm font-semibold text-slate-700">Dashboard CRM</div>
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <input type="text" placeholder="Buscar..." class="w-52 pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50"/>
+        <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <button type="button" aria-label="Notificaciones" class="relative p-1.5 text-slate-400 hover:text-slate-600">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="p-8 space-y-5">
+
+    <!-- ═══════════════ DASHBOARD ═══════════════ -->
+    <div id="sec-dashboard" class="section active">
+      <div class="mb-5">
+        <h1 class="text-xl font-bold text-slate-900">Dashboard CRM</h1>
+        <p class="text-sm text-slate-500 mt-0.5">Resumen del mes — Marzo 2026</p>
+      </div>
+
+      <!-- KPIs Row 1 -->
+      <div class="grid grid-cols-4 gap-4 mb-4">
+        <div class="kpi-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-slate-500">Nuevos Leads</span>
+            <span class="badge badge-green">+18%</span>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">47</div>
+          <div class="text-xs text-slate-400 mt-1">vs 40 mes anterior</div>
+        </div>
+        <div class="kpi-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-slate-500">Pipeline Total</span>
+            <span class="badge badge-blue">Activo</span>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">$284,500</div>
+          <div class="text-xs text-slate-400 mt-1">12 oportunidades abiertas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-slate-500">Cerrado Ganado</span>
+            <span class="badge badge-green trend-up">↑ 32%</span>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">$91,200</div>
+          <div class="text-xs text-slate-400 mt-1">vs $69,000 mes anterior</div>
+        </div>
+        <div class="kpi-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-slate-500">Tasa Conversión</span>
+            <span class="badge badge-yellow">↓ 2%</span>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">24%</div>
+          <div class="text-xs text-slate-400 mt-1">leads → oportunidad</div>
+        </div>
+      </div>
+
+      <!-- KPIs Row 2 -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="kpi-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-slate-500">Actividades (semana)</span>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">38</div>
+          <div class="text-xs text-slate-400 mt-1">llamadas, emails, reuniones</div>
+        </div>
+        <div class="kpi-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-slate-500">Tareas Abiertas</span>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">14</div>
+          <div class="text-xs text-slate-400 mt-1">3 vencidas hoy</div>
+        </div>
+        <div class="kpi-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-slate-500">Oportunidades Abiertas</span>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">12</div>
+          <div class="text-xs text-slate-400 mt-1">ponderado: $148,200</div>
+        </div>
+        <div class="kpi-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-slate-500">Cotizaciones Enviadas</span>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">8</div>
+          <div class="text-xs text-slate-400 mt-1">2 aceptadas este mes</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid grid-cols-2 gap-5 mb-5">
+        <div class="bg-white rounded-xl border border-slate-200 p-5">
+          <div class="text-sm font-semibold text-slate-700 mb-4">Pipeline por Etapa</div>
+          <div id="chart-funnel" style="height:260px;"></div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5">
+          <div class="text-sm font-semibold text-slate-700 mb-4">Revenue Trend (6 meses)</div>
+          <div id="chart-revenue" style="height:260px;"></div>
+        </div>
+      </div>
+
+      <!-- Rep Performance + Activity Feed -->
+      <div class="grid grid-cols-3 gap-5">
+        <div class="col-span-2 bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div class="px-5 py-3 border-b border-slate-100">
+            <div class="text-sm font-semibold text-slate-700">Rendimiento por Rep</div>
+          </div>
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 border-b border-slate-100">
+              <tr>
+                <th class="text-left px-4 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">Rep</th>
+                <th class="text-right px-4 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">Pipeline</th>
+                <th class="text-right px-4 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">Cerrado</th>
+                <th class="text-right px-4 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">Actividades</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="table-row border-b border-slate-50"><td class="px-4 py-3"><div class="flex items-center gap-2"><div class="avatar avatar-sm" style="background:#059669">MA</div><span class="text-sm font-medium text-slate-800">María Alejandra</span></div></td><td class="px-4 py-3 text-right text-sm text-slate-600">$94,000</td><td class="px-4 py-3 text-right text-sm font-medium text-emerald-600">$38,500</td><td class="px-4 py-3 text-right text-sm text-slate-600">14</td></tr>
+              <tr class="table-row border-b border-slate-50"><td class="px-4 py-3"><div class="flex items-center gap-2"><div class="avatar avatar-sm" style="background:#7c3aed">CR</div><span class="text-sm font-medium text-slate-800">Carlos Ríos</span></div></td><td class="px-4 py-3 text-right text-sm text-slate-600">$78,500</td><td class="px-4 py-3 text-right text-sm font-medium text-emerald-600">$29,200</td><td class="px-4 py-3 text-right text-sm text-slate-600">11</td></tr>
+              <tr class="table-row border-b border-slate-50"><td class="px-4 py-3"><div class="flex items-center gap-2"><div class="avatar avatar-sm" style="background:#dc2626">LP</div><span class="text-sm font-medium text-slate-800">Laura Pérez</span></div></td><td class="px-4 py-3 text-right text-sm text-slate-600">$62,000</td><td class="px-4 py-3 text-right text-sm font-medium text-emerald-600">$15,000</td><td class="px-4 py-3 text-right text-sm text-slate-600">9</td></tr>
+              <tr class="table-row"><td class="px-4 py-3"><div class="flex items-center gap-2"><div class="avatar avatar-sm" style="background:#d97706">JM</div><span class="text-sm font-medium text-slate-800">Javier Molina</span></div></td><td class="px-4 py-3 text-right text-sm text-slate-600">$50,000</td><td class="px-4 py-3 text-right text-sm font-medium text-emerald-600">$8,500</td><td class="px-4 py-3 text-right text-sm text-slate-600">4</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div class="px-5 py-3 border-b border-slate-100">
+            <div class="text-sm font-semibold text-slate-700">Actividad Reciente</div>
+          </div>
+          <div class="px-4 py-2">
+            <div class="activity-item"><div class="activity-dot mt-1.5" style="background:#059669"></div><div><div class="text-xs font-medium text-slate-800">Llamada con Agro del Sur</div><div class="text-xs text-slate-400">María Alejandra · hace 20 min</div></div></div>
+            <div class="activity-item"><div class="activity-dot mt-1.5" style="background:#6366f1"></div><div><div class="text-xs font-medium text-slate-800">Email enviado a TechFarm</div><div class="text-xs text-slate-400">Carlos Ríos · hace 1h</div></div></div>
+            <div class="activity-item"><div class="activity-dot mt-1.5" style="background:#f59e0b"></div><div><div class="text-xs font-medium text-slate-800">Reunión con GreenField SA</div><div class="text-xs text-slate-400">Laura Pérez · hace 2h</div></div></div>
+            <div class="activity-item"><div class="activity-dot mt-1.5" style="background:#059669"></div><div><div class="text-xs font-medium text-slate-800">Nota en Prospecto #47</div><div class="text-xs text-slate-400">Javier Molina · hace 3h</div></div></div>
+            <div class="activity-item"><div class="activity-dot mt-1.5" style="background:#dc2626"></div><div><div class="text-xs font-medium text-slate-800">Opp. cerrada perdida</div><div class="text-xs text-slate-400">Carlos Ríos · hace 4h</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ LEADS ═══════════════ -->
+    <div id="sec-leads" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Leads</h1><p class="text-sm text-slate-500 mt-0.5">47 leads en total</p></div>
+        <button type="button" onclick="openModal('modal-lead')" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white" style="background:#059669">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Lead
+        </button>
+      </div>
+      <!-- Filters -->
+      <div class="flex gap-2 mb-4">
+        <select class="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-600"><option>Todos los estados</option><option>Nuevo</option><option>Contactado</option><option>Calificado</option></select>
+        <select class="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-600"><option>Todas las fuentes</option><option>Web</option><option>Referido</option><option>Outreach</option></select>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Nombre</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Empresa</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Fuente</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Estado</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Propietario</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Creado</th>
+            </tr>
+          </thead>
+          <tbody id="leads-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ ACCOUNTS ═══════════════ -->
+    <div id="sec-accounts" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Cuentas</h1><p class="text-sm text-slate-500 mt-0.5">24 cuentas</p></div>
+        <button type="button" onclick="openModal('modal-account')" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white" style="background:#059669">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva Cuenta
+        </button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Cuenta</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tipo</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Industria</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Health</th>
+              <th class="text-center px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Contactos</th>
+              <th class="text-center px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Opps</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Propietario</th>
+            </tr>
+          </thead>
+          <tbody id="accounts-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ CONTACTS ═══════════════ -->
+    <div id="sec-contacts" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Contactos</h1><p class="text-sm text-slate-500 mt-0.5">58 contactos</p></div>
+        <button type="button" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white" style="background:#059669">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Contacto
+        </button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Contacto</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Cargo</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Cuenta</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Email</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Teléfono</th>
+            </tr>
+          </thead>
+          <tbody id="contacts-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ PIPELINE ═══════════════ -->
+    <div id="sec-pipeline" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Pipeline</h1><p class="text-sm text-slate-500 mt-0.5">Kanban por etapas · $284,500 en pipeline</p></div>
+      </div>
+      <div class="flex gap-4 overflow-x-auto pb-4" id="kanban-board"></div>
+    </div>
+
+    <!-- ═══════════════ OPPORTUNITIES ═══════════════ -->
+    <div id="sec-opportunities" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Oportunidades</h1><p class="text-sm text-slate-500 mt-0.5">12 oportunidades abiertas</p></div>
+        <button type="button" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white" style="background:#059669">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva Oportunidad
+        </button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Oportunidad</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Etapa</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Categoría</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Monto</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Cierre est.</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Propietario</th>
+            </tr>
+          </thead>
+          <tbody id="opps-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ ACTIVITIES ═══════════════ -->
+    <div id="sec-activities" class="section">
+      <div class="mb-5"><h1 class="text-xl font-bold text-slate-900">Actividades</h1><p class="text-sm text-slate-500 mt-0.5">50 actividades recientes</p></div>
+      <div class="bg-white rounded-xl border border-slate-200 p-5">
+        <div id="activities-feed"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ TASKS ═══════════════ -->
+    <div id="sec-tasks" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Tareas</h1><p class="text-sm text-slate-500 mt-0.5">14 tareas abiertas</p></div>
+        <button type="button" onclick="openModal('modal-task')" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white" style="background:#059669">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva Tarea
+        </button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tarea</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Prioridad</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Estado</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Vencimiento</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Asignado</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Relacionado con</th>
+            </tr>
+          </thead>
+          <tbody id="tasks-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ QUOTES ═══════════════ -->
+    <div id="sec-quotes" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Cotizaciones</h1><p class="text-sm text-slate-500 mt-0.5">8 cotizaciones</p></div>
+        <button type="button" onclick="go('quote-builder')" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white" style="background:#059669">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva Cotización
+        </button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Número</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Cuenta</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Estado</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Total</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Válida hasta</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Creada</th>
+            </tr>
+          </thead>
+          <tbody id="quotes-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ QUOTE BUILDER ═══════════════ -->
+    <div id="sec-quote-builder" class="section">
+      <div class="flex items-center gap-3 mb-5">
+        <button type="button" onclick="go('quotes')" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" aria-label="Volver a cotizaciones"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <div><h1 class="text-xl font-bold text-slate-900">Nueva Cotización</h1><p class="text-sm text-slate-500 mt-0.5">Completa los detalles y agrega las líneas</p></div>
+      </div>
+      <div class="space-y-5">
+        <!-- Config -->
+        <div class="bg-white rounded-xl border border-slate-200 p-5">
+          <div class="text-sm font-semibold text-slate-700 mb-4">Configuración</div>
+          <div class="grid grid-cols-4 gap-4">
+            <div><label class="text-xs font-medium text-slate-500 block mb-1">Cuenta</label><select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"><option>Agro del Sur SA</option><option>TechFarm SRL</option><option>GreenField SA</option></select></div>
+            <div><label class="text-xs font-medium text-slate-500 block mb-1">Moneda</label><input value="USD" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"/></div>
+            <div><label class="text-xs font-medium text-slate-500 block mb-1">Descuento (%)</label><input type="number" value="0" min="0" max="100" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" oninput="recalcQuote()"/></div>
+            <div><label class="text-xs font-medium text-slate-500 block mb-1">Impuesto (%)</label><input type="number" value="21" min="0" max="100" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" oninput="recalcQuote()"/></div>
+          </div>
+        </div>
+        <!-- Line items -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+            <div class="text-sm font-semibold text-slate-700">Líneas de cotización</div>
+            <button type="button" onclick="addQuoteLine()" class="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Agregar línea
+            </button>
+          </div>
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 border-b border-slate-100">
+              <tr>
+                <th class="text-left px-4 py-2.5 text-xs font-medium text-slate-500">Descripción</th>
+                <th class="text-right px-3 py-2.5 text-xs font-medium text-slate-500 w-24">Cantidad</th>
+                <th class="text-right px-3 py-2.5 text-xs font-medium text-slate-500 w-32">P. Unitario</th>
+                <th class="text-right px-3 py-2.5 text-xs font-medium text-slate-500 w-24">Desc. %</th>
+                <th class="text-right px-4 py-2.5 text-xs font-medium text-slate-500 w-32">Total</th>
+                <th class="w-10"></th>
+              </tr>
+            </thead>
+            <tbody id="quote-lines"></tbody>
+          </table>
+          <div class="border-t border-slate-100 px-5 py-4 flex justify-end">
+            <div class="space-y-1.5 text-sm w-52">
+              <div class="flex justify-between text-slate-500"><span>Subtotal</span><span id="q-subtotal">$0.00</span></div>
+              <div class="flex justify-between text-slate-500"><span>Descuento</span><span id="q-discount" class="text-red-500">−$0.00</span></div>
+              <div class="flex justify-between text-slate-500"><span>Impuesto (21%)</span><span id="q-tax">$0.00</span></div>
+              <div class="flex justify-between font-bold text-slate-900 border-t border-slate-100 pt-2"><span>Total</span><span id="q-total">$0.00</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Actions -->
+        <div class="flex justify-end gap-3">
+          <button type="button" onclick="go('quotes')" class="px-4 py-2 text-sm text-slate-500 hover:text-slate-800">Cancelar</button>
+          <button type="button" onclick="saveQuote()" class="px-5 py-2 rounded-lg text-sm font-medium text-white" style="background:#059669">Guardar cotización</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ FORECAST ═══════════════ -->
+    <div id="sec-forecast" class="section">
+      <div class="mb-5"><h1 class="text-xl font-bold text-slate-900">Forecast</h1><p class="text-sm text-slate-500 mt-0.5">Proyección de ingresos — Marzo 2026</p></div>
+      <!-- Summary cards -->
+      <div class="grid grid-cols-4 gap-4 mb-5">
+        <div class="kpi-card"><div class="flex items-center gap-2 mb-2"><span class="w-2 h-2 rounded-full bg-slate-400"></span><span class="text-xs font-medium text-slate-500">Pipeline</span></div><div class="text-xl font-bold text-slate-900">$120,000</div><div class="text-xs text-slate-400">6 oportunidades</div></div>
+        <div class="kpi-card"><div class="flex items-center gap-2 mb-2"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-xs font-medium text-slate-500">Mejor Caso</span></div><div class="text-xl font-bold text-slate-900">$95,500</div><div class="text-xs text-slate-400">4 oportunidades</div></div>
+        <div class="kpi-card"><div class="flex items-center gap-2 mb-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span><span class="text-xs font-medium text-slate-500">Commit</span></div><div class="text-xl font-bold text-slate-900">$69,000</div><div class="text-xs text-slate-400">2 oportunidades</div></div>
+        <div class="kpi-card"><div class="flex items-center gap-2 mb-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-xs font-medium text-slate-500">Cerrado Ganado</span></div><div class="text-xl font-bold text-slate-900">$91,200</div><div class="text-xs text-slate-400">5 oportunidades</div></div>
+      </div>
+      <!-- Progress bars -->
+      <div class="bg-white rounded-xl border border-slate-200 p-5 mb-5">
+        <div class="grid grid-cols-3 gap-8">
+          <div><div class="flex justify-between text-xs text-slate-500 mb-1.5"><span>Commit vs Pipeline</span><span class="font-semibold text-slate-700">57%</span></div><div class="health-bar"><div class="health-fill bg-indigo-500" style="width:57%"></div></div></div>
+          <div><div class="flex justify-between text-xs text-slate-500 mb-1.5"><span>Cerrado Ganado</span><span class="font-semibold text-slate-700">$91,200</span></div><div class="health-bar"><div class="health-fill bg-emerald-500" style="width:76%"></div></div></div>
+          <div><div class="flex justify-between text-xs text-slate-500 mb-1.5"><span>Win Rate</span><span class="font-semibold text-slate-700">38%</span></div><div class="health-bar"><div class="health-fill bg-amber-400" style="width:38%"></div></div></div>
+        </div>
+      </div>
+      <!-- Ops table -->
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100"><div class="text-sm font-semibold text-slate-700">Oportunidades abiertas</div></div>
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Oportunidad</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Etapa</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Categoría</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Monto</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Cierre est.</th>
+            </tr>
+          </thead>
+          <tbody id="forecast-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ COMING SOON (Sales, Inventory, Finance, Settings) ═══════════════ -->
+    <!-- ═══════════════ PRODUCTS ═══════════════ -->
+    <div id="sec-products" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h1 class="text-xl font-bold text-slate-900">Catálogo de Productos</h1>
+          <p class="text-sm text-slate-500 mt-0.5">9 productos · 8 activos · 4 categorías</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="go('vendors')" class="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Proveedores</button>
+          <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg" style="background:#059669">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo Producto
+          </button>
+        </div>
+      </div>
+      <div id="products-kpis" class="grid grid-cols-3 gap-4 mb-5"></div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Producto</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tipo</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Categoría</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Unidad</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Precio Base</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">IVA</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Estado</th>
+            </tr>
+          </thead>
+          <tbody id="products-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ VENDORS ═══════════════ -->
+    <div id="sec-vendors" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h1 class="text-xl font-bold text-slate-900">Proveedores</h1>
+          <p class="text-sm text-slate-500 mt-0.5">6 proveedores registrados</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="go('products')" class="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Productos</button>
+          <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg" style="background:#059669">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo Proveedor
+          </button>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Proveedor</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tax ID</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Contacto</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">País</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Plazo Pago</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Moneda</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Estado</th>
+            </tr>
+          </thead>
+          <tbody id="vendors-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ WAREHOUSES ═══════════════ -->
+    <div id="sec-warehouses" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Almacenes</h1><p class="text-sm text-slate-500 mt-0.5">3 almacenes activos</p></div>
+        <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg" style="background:#059669">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Almacén
+        </button>
+      </div>
+      <div id="warehouses-grid" class="grid grid-cols-3 gap-4"></div>
+    </div>
+
+    <!-- ═══════════════ STOCK ═══════════════ -->
+    <div id="sec-stock" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Stock Actual</h1><p class="text-sm text-slate-500 mt-0.5">Niveles por almacén</p></div>
+        <button type="button" onclick="go('movements')" class="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Ver Movimientos</button>
+      </div>
+      <div id="stock-alert" class="hidden mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700 font-medium"></div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Producto</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Almacén</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Stock</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Reservado</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Disponible</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Mín.</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Estado</th>
+            </tr>
+          </thead>
+          <tbody id="stock-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ MOVEMENTS ═══════════════ -->
+    <div id="sec-movements" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Movimientos de Inventario</h1><p class="text-sm text-slate-500 mt-0.5">Historial de entradas y salidas</p></div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Fecha</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tipo</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Producto</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Almacén</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Cantidad</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Costo Unit.</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Referencia</th>
+            </tr>
+          </thead>
+          <tbody id="movements-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ SALES ORDERS ═══════════════ -->
+    <div id="sec-sales-orders" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Órdenes de Venta</h1><p class="text-sm text-slate-500 mt-0.5">Gestión de pedidos de clientes</p></div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="go('purchase-orders')" class="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Órdenes de Compra</button>
+          <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg" style="background:#059669">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva OS
+          </button>
+        </div>
+      </div>
+      <div id="so-kpis" class="grid grid-cols-4 gap-4 mb-5"></div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Número</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Cliente</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Estado</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Total</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Fecha solicitud</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Vendedor</th>
+            </tr>
+          </thead>
+          <tbody id="so-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ PURCHASE ORDERS ═══════════════ -->
+    <div id="sec-purchase-orders" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Órdenes de Compra</h1><p class="text-sm text-slate-500 mt-0.5">Gestión de compras a proveedores</p></div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="go('sales-orders')" class="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Órdenes de Venta</button>
+          <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg" style="background:#059669">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva OC
+          </button>
+        </div>
+      </div>
+      <div id="po-pending-alert" class="hidden mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700 font-medium"></div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Número</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Proveedor</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Estado</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Total</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Entrega est.</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Comprador</th>
+            </tr>
+          </thead>
+          <tbody id="po-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ FINANCE DASHBOARD ═══════════════ -->
+    <div id="sec-finance" class="section">
+      <div class="mb-5">
+        <h1 class="text-xl font-bold text-slate-900">Dashboard Financiero</h1>
+        <p class="text-sm text-slate-500 mt-0.5">Marzo 2026 · Biogrow Fodder</p>
+      </div>
+      <div id="fin-kpis" class="grid grid-cols-4 gap-4 mb-5"></div>
+      <div class="grid grid-cols-2 gap-5">
+        <!-- AR Aging -->
+        <div class="bg-white rounded-xl border border-slate-200 p-5">
+          <div class="text-sm font-semibold text-slate-700 mb-4">Antigüedad de Cartera (AR)</div>
+          <div id="ar-aging"></div>
+        </div>
+        <!-- Cash Flow -->
+        <div class="bg-white rounded-xl border border-slate-200 p-5">
+          <div class="text-sm font-semibold text-slate-700 mb-4">Flujo de Caja (6 meses)</div>
+          <div id="cashflow-table"></div>
+        </div>
+      </div>
+      <div class="mt-5 flex gap-3">
+        <button type="button" onclick="go('invoices')" class="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Ver Facturas</button>
+        <button type="button" class="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cuentas x Cobrar</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════ INVOICES ═══════════════ -->
+    <div id="sec-invoices" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div><h1 class="text-xl font-bold text-slate-900">Facturas</h1><p class="text-sm text-slate-500 mt-0.5">Gestión de facturación</p></div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="go('finance')" class="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Dashboard Financiero</button>
+          <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg" style="background:#059669">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva Factura
+          </button>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Número</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Cliente</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Estado</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Total</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Pagado</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Saldo</th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Vencimiento</th>
+            </tr>
+          </thead>
+          <tbody id="invoices-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ HOLDING ═══════════════ -->
+    <div id="sec-holding" class="section">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h1 class="text-xl font-bold text-slate-900">Biogrow Group</h1>
+          <p class="text-sm text-slate-500 mt-0.5">Vista consolidada del holding — 8 empresas activas</p>
+        </div>
+        <span class="badge badge-purple">Holding</span>
+      </div>
+      <div id="holding-kpis" class="grid grid-cols-4 gap-4 mb-5"></div>
+      <div class="grid grid-cols-5 gap-5 mb-5">
+        <div class="col-span-2 bg-white rounded-xl border border-slate-200 p-5">
+          <div class="text-sm font-semibold text-slate-700 mb-4">Revenue consolidado (6 meses)</div>
+          <div id="holding-trend"></div>
+        </div>
+        <div class="col-span-3 bg-white rounded-xl border border-slate-200 p-5">
+          <div class="text-sm font-semibold text-slate-700 mb-4">Top oportunidades del grupo</div>
+          <div id="holding-opps"></div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+          <div class="text-sm font-semibold text-slate-700">Rendimiento por empresa</div>
+          <span class="text-xs text-slate-400">Mes actual</span>
+        </div>
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th class="text-left px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Empresa</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Leads</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Pipeline</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Cerrado Won</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">AR Pend.</th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tareas</th>
+            </tr>
+          </thead>
+          <tbody id="holding-breakdown"></tbody>
+          <tfoot id="holding-totals" class="bg-slate-50 border-t border-slate-200"></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════ REPORTS / SETTINGS ═══════════════ -->
+    <div id="sec-reports" class="section"><div class="flex flex-col items-center justify-center py-24 text-slate-400"><svg class="w-12 h-12 mb-4 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><div class="text-lg font-semibold">Reportes</div><div class="text-sm mt-1">Analytics avanzado — próximamente</div></div></div>
+    <div id="sec-settings" class="section"><div class="flex flex-col items-center justify-center py-24 text-slate-400"><svg class="w-12 h-12 mb-4 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><div class="text-lg font-semibold">Configuración</div><div class="text-sm mt-1">Configuración del sistema</div></div></div>
+
+  </div><!-- /p-8 -->
+</div><!-- /main -->
+
+<!-- ───────────── MODALS ───────────── -->
+<div id="modal-lead" class="modal-backdrop" onclick="if(event.target===this)closeModal('modal-lead')">
+  <div class="modal">
+    <div class="flex items-center justify-between mb-5"><h2 class="text-base font-bold text-slate-900">Nuevo Lead</h2><button type="button" aria-label="Cerrar" onclick="closeModal('modal-lead')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Nombre</label><input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Juan"/></div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Apellido</label><input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="García"/></div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Email</label><input type="email" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="juan@empresa.com"/></div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Teléfono</label><input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="+54 11 1234-5678"/></div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Empresa</label><input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Nombre de la empresa"/></div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Cargo</label><input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Director Comercial"/></div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Fuente</label><select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"><option>Web</option><option>Referido</option><option>Outreach</option><option>Evento</option><option>Social Media</option></select></div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Propietario</label><select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"><option>María Alejandra</option><option>Carlos Ríos</option><option>Laura Pérez</option><option>Javier Molina</option></select></div>
+    </div>
+    <div class="flex justify-end gap-3 mt-5">
+      <button type="button" onclick="closeModal('modal-lead')" class="px-4 py-2 text-sm text-slate-500">Cancelar</button>
+      <button type="button" onclick="addLead()" class="px-5 py-2 rounded-lg text-sm font-medium text-white" style="background:#059669">Crear Lead</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-account" class="modal-backdrop" onclick="if(event.target===this)closeModal('modal-account')">
+  <div class="modal">
+    <div class="flex items-center justify-between mb-5"><h2 class="text-base font-bold text-slate-900">Nueva Cuenta</h2><button type="button" aria-label="Cerrar" onclick="closeModal('modal-account')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="col-span-2"><label class="text-xs font-medium text-slate-500 block mb-1">Nombre de la cuenta</label><input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Empresa SA"/></div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Tipo</label><select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"><option>Prospecto</option><option>Cliente</option><option>Partner</option><option>Proveedor</option></select></div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Industria</label><input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Agroindustria"/></div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Sitio web</label><input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="www.empresa.com"/></div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Teléfono</label><input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="+54 11 1234-5678"/></div>
+    </div>
+    <div class="flex justify-end gap-3 mt-5">
+      <button type="button" onclick="closeModal('modal-account')" class="px-4 py-2 text-sm text-slate-500">Cancelar</button>
+      <button type="button" onclick="closeModal('modal-account')" class="px-5 py-2 rounded-lg text-sm font-medium text-white" style="background:#059669">Crear Cuenta</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-task" class="modal-backdrop" onclick="if(event.target===this)closeModal('modal-task')">
+  <div class="modal">
+    <div class="flex items-center justify-between mb-5"><h2 class="text-base font-bold text-slate-900">Nueva Tarea</h2><button type="button" aria-label="Cerrar" onclick="closeModal('modal-task')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="space-y-3">
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Título</label><input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Llamar a prospecto..."/></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs font-medium text-slate-500 block mb-1">Prioridad</label><select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"><option>Alta</option><option>Media</option><option>Baja</option><option>Urgente</option></select></div>
+        <div><label class="text-xs font-medium text-slate-500 block mb-1">Vencimiento</label><input type="date" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"/></div>
+        <div><label class="text-xs font-medium text-slate-500 block mb-1">Asignado a</label><select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"><option>María Alejandra</option><option>Carlos Ríos</option><option>Laura Pérez</option><option>Javier Molina</option></select></div>
+        <div><label class="text-xs font-medium text-slate-500 block mb-1">Relacionado con</label><select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"><option>— Ninguno —</option><option>Agro del Sur SA</option><option>TechFarm SRL</option></select></div>
+      </div>
+      <div><label class="text-xs font-medium text-slate-500 block mb-1">Descripción</label><textarea rows="2" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm resize-none" placeholder="Detalles de la tarea..."></textarea></div>
+    </div>
+    <div class="flex justify-end gap-3 mt-5">
+      <button type="button" onclick="closeModal('modal-task')" class="px-4 py-2 text-sm text-slate-500">Cancelar</button>
+      <button type="button" onclick="closeModal('modal-task')" class="px-5 py-2 rounded-lg text-sm font-medium text-white" style="background:#059669">Crear Tarea</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────────────────
+const REPS = [
+  { name: "María Alejandra", initials: "MA", color: "#059669" },
+  { name: "Carlos Ríos",     initials: "CR", color: "#7c3aed" },
+  { name: "Laura Pérez",     initials: "LP", color: "#dc2626" },
+  { name: "Javier Molina",   initials: "JM", color: "#d97706" },
+];
+function rep(i) { return REPS[i % REPS.length]; }
+
+const LEADS_DATA = [
+  { name: "Roberto Suárez",    company: "AgroSur SA",       source: "Web",      status: "NUEVO",       owner: 0, date: "12 Mar" },
+  { name: "Andrea Méndez",     company: "TechFarm SRL",     source: "Referido", status: "CONTACTADO",  owner: 1, date: "11 Mar" },
+  { name: "Daniel Rojas",      company: "GreenField SA",    source: "Outreach", status: "CALIFICADO",  owner: 2, date: "10 Mar" },
+  { name: "Valentina Cruz",    company: "AgroPro SA",       source: "Evento",   status: "NUEVO",       owner: 3, date: "10 Mar" },
+  { name: "Martín Álvarez",    company: "FodderTech",       source: "Social",   status: "CONVERTIDO",  owner: 0, date: "9 Mar"  },
+  { name: "Sofía Herrera",     company: "CampoVerde SRL",   source: "Web",      status: "NO_CALIFICADO",owner:1, date: "8 Mar"  },
+  { name: "Felipe Torres",     company: "AgriMax SA",       source: "Referido", status: "CONTACTADO",  owner: 2, date: "7 Mar"  },
+  { name: "Lucía Fernández",   company: "SeedPro",          source: "Web",      status: "CALIFICADO",  owner: 3, date: "6 Mar"  },
+];
+
+const ACCOUNTS_DATA = [
+  { name: "Agro del Sur SA",  type: "CLIENTE",    industry: "Agroindustria",  health: 82, contacts: 4, opps: 2, owner: 0 },
+  { name: "TechFarm SRL",     type: "PROSPECTO",  industry: "AgTech",         health: 65, contacts: 2, opps: 1, owner: 1 },
+  { name: "GreenField SA",    type: "CLIENTE",    industry: "Agricultura",    health: 91, contacts: 6, opps: 3, owner: 0 },
+  { name: "AgroPro SA",       type: "PROSPECTO",  industry: "Insumos agro",   health: 45, contacts: 1, opps: 1, owner: 2 },
+  { name: "CampoVerde SRL",   type: "PARTNER",    industry: "Forrajes",       health: 74, contacts: 3, opps: 0, owner: 3 },
+  { name: "FodderTech",       type: "CLIENTE",    industry: "Tecnología",     health: 88, contacts: 5, opps: 2, owner: 1 },
+  { name: "SeedPro",          type: "PROSPECTO",  industry: "Semillas",       health: 30, contacts: 1, opps: 0, owner: 2 },
+  { name: "AgriMax SA",       type: "PERDIDO",    industry: "Maquinaria",     health: 18, contacts: 2, opps: 0, owner: 0 },
+];
+
+const CONTACTS_DATA = [
+  { first: "Roberto", last: "Suárez",   title: "Director Comercial", account: "Agro del Sur SA",  email: "r.suarez@agrosur.com",   phone: "+54 11 4455-6677", primary: true  },
+  { first: "Andrea",  last: "Méndez",   title: "Gerente de Compras", account: "TechFarm SRL",     email: "andrea@techfarm.com",    phone: "+54 351 234-5678" },
+  { first: "Daniel",  last: "Rojas",    title: "CEO",                account: "GreenField SA",    email: "d.rojas@greenfield.com", phone: "+54 261 987-6543", primary: true },
+  { first: "Lucía",   last: "Fernández",title: "Ing. Agrónomo",      account: "FodderTech",       email: "lucia@foddertech.com",   phone: "+54 11 5566-7788" },
+  { first: "Martín",  last: "Álvarez",  title: "Jefe de Operaciones",account: "Agro del Sur SA",  email: "m.alvarez@agrosur.com",  phone: "+54 11 2233-4455" },
+  { first: "Sofía",   last: "Herrera",  title: "Analista de Negocios",account: "CampoVerde SRL",  email: "sofia@campoverde.com",   phone: "+54 341 111-2222" },
+];
+
+const PIPELINE_STAGES = [
+  { name: "Prospección",    color: "#64748b", prob: 10 },
+  { name: "Calificación",   color: "#f59e0b", prob: 25 },
+  { name: "Propuesta",      color: "#6366f1", prob: 50 },
+  { name: "Negociación",    color: "#0ea5e9", prob: 75 },
+  { name: "Cierre",         color: "#059669", prob: 90 },
+];
+
+const OPPS_DATA = [
+  { name: "Renovación anual Agro del Sur",  account: "Agro del Sur SA",  stage: 4, cat: "COMMIT",    amount: 48000, close: "31 Mar", owner: 0 },
+  { name: "Expansión TechFarm Q2",          account: "TechFarm SRL",     stage: 2, cat: "PIPELINE",  amount: 32000, close: "15 Abr", owner: 1 },
+  { name: "Proyecto GreenField 2026",       account: "GreenField SA",    stage: 3, cat: "BEST_CASE", amount: 75000, close: "30 Abr", owner: 0 },
+  { name: "Suministro forraje Q2",          account: "CampoVerde SRL",   stage: 1, cat: "PIPELINE",  amount: 18000, close: "20 Abr", owner: 2 },
+  { name: "Software AgriMax",               account: "AgriMax SA",       stage: 2, cat: "PIPELINE",  amount: 22000, close: "10 May", owner: 3 },
+  { name: "Consultoría FodderTech",         account: "FodderTech",       stage: 3, cat: "BEST_CASE", amount: 41000, close: "5 May",  owner: 1 },
+  { name: "Programa semillas SeedPro",      account: "SeedPro",          stage: 0, cat: "PIPELINE",  amount: 14500, close: "15 May", owner: 2 },
+  { name: "Upgrade AgroPro Pro",            account: "AgroPro SA",       stage: 4, cat: "COMMIT",    amount: 21000, close: "28 Mar", owner: 0 },
+];
+
+const TASKS_DATA = [
+  { title: "Llamar a Roberto Suárez",          priority: "ALTA",    status: "PENDIENTE",    due: "Hoy",     assignee: 0, related: "Agro del Sur SA" },
+  { title: "Enviar propuesta TechFarm",        priority: "URGENTE", status: "EN_PROGRESO",  due: "Hoy",     assignee: 1, related: "TechFarm SRL" },
+  { title: "Demo GreenField Project",          priority: "ALTA",    status: "PENDIENTE",    due: "30 Mar",  assignee: 0, related: "GreenField SA" },
+  { title: "Seguimiento AgroPro cotización",   priority: "MEDIA",   status: "PENDIENTE",    due: "31 Mar",  assignee: 2, related: "AgroPro SA" },
+  { title: "Actualizar contrato CampoVerde",   priority: "BAJA",    status: "COMPLETADA",   due: "28 Mar",  assignee: 3, related: "CampoVerde SRL" },
+  { title: "Reunión semanal equipo CRM",       priority: "MEDIA",   status: "PENDIENTE",    due: "1 Abr",   assignee: 0, related: "—" },
+];
+
+const QUOTES_DATA = [
+  { num: "Q-2026-0008", account: "Agro del Sur SA",  status: "ACEPTADA",  total: 48000, valid: "15 Abr",  created: "20 Mar" },
+  { num: "Q-2026-0007", account: "GreenField SA",    status: "ENVIADA",   total: 75000, valid: "10 Abr",  created: "18 Mar" },
+  { num: "Q-2026-0006", account: "FodderTech",       status: "VISTA",     total: 41000, valid: "5 Abr",   created: "15 Mar" },
+  { num: "Q-2026-0005", account: "TechFarm SRL",     status: "BORRADOR",  total: 32000, valid: "30 Mar",  created: "12 Mar" },
+  { num: "Q-2026-0004", account: "AgroPro SA",       status: "RECHAZADA", total: 19000, valid: "—",       created: "5 Mar"  },
+  { num: "Q-2026-0003", account: "AgriMax SA",       status: "VENCIDA",   total: 22000, valid: "15 Mar",  created: "1 Mar"  },
+];
+
+const PRODUCTS_DATA = [
+  { sku: "FOR-001", name: "Heno de Alfalfa Premium",     type: "FÍSICO",    category: "Forrajes",    unit: "fardo", price: 850,    tax: 10.5, active: true },
+  { sku: "FOR-002", name: "Silo de Maíz Húmedo",         type: "FÍSICO",    category: "Forrajes",    unit: "ton",   price: 12500,  tax: 10.5, active: true },
+  { sku: "SUP-001", name: "Suplemento Mineral Bovino",   type: "FÍSICO",    category: "Suplementos", unit: "kg",    price: 320,    tax: 10.5, active: true },
+  { sku: "SUP-002", name: "Vitaminas Reproductivas",     type: "FÍSICO",    category: "Suplementos", unit: "lt",    price: 480,    tax: 21,   active: true },
+  { sku: "SRV-001", name: "Consultoría Nutricional",     type: "SERVICIO",  category: "Servicios",   unit: "hr",    price: 1800,   tax: 21,   active: true },
+  { sku: "SRV-002", name: "Análisis de Suelos",          type: "SERVICIO",  category: "Servicios",   unit: "muestra", price: 2500, tax: 21, active: true },
+  { sku: "SRV-003", name: "Capacitación Técnica",        type: "SERVICIO",  category: "Servicios",   unit: "hr",    price: 1200,   tax: 21,   active: true },
+  { sku: "DIG-001", name: "Software CattleTrack",        type: "DIGITAL",   category: "Software",    unit: "lic",   price: 8500,   tax: 21,   active: true },
+  { sku: "FOR-003", name: "Rye Grass",                   type: "FÍSICO",    category: "Forrajes",    unit: "ton",   price: 9800,   tax: 10.5, active: false },
+];
+
+const VENDORS_DATA = [
+  { name: "AgroInsumos SA",       legal: "AgroInsumos SA de CV",   taxId: "30-71234567-9", contact: "Pedro Domínguez",  email: "compras@agroinsumos.com", country: "Argentina", terms: 30,  currency: "ARS", status: "ACTIVO"    },
+  { name: "SeedCorp International",legal: "SeedCorp Int. LLC",     taxId: "98-7654321",    contact: "Tom Williams",     email: "tw@seedcorp.com",         country: "USA",       terms: 60,  currency: "USD", status: "ACTIVO"    },
+  { name: "Lab Nutrivet",          legal: "Lab Nutrivet SRL",       taxId: "20-33456789-1", contact: "Ana Gutiérrez",    email: "ana@nutrivet.com.ar",     country: "Argentina", terms: 30,  currency: "ARS", status: "ACTIVO"    },
+  { name: "TechEquip Brazil",      legal: "TechEquip Ltda",         taxId: "12.345.678/0001", contact: "João Silva",     email: "j.silva@techequip.br",    country: "Brasil",    terms: 45,  currency: "BRL", status: "ACTIVO"    },
+  { name: "MaquiAgro SA",          legal: "MaquiAgro SA",           taxId: "30-55667788-4", contact: "Ricardo Flores",   email: "rflo@maquiagro.com",      country: "Argentina", terms: 60,  currency: "ARS", status: "INACTIVO"  },
+  { name: "Global Chem Supplies",  legal: "GCS Ltd.",               taxId: "GB123456789",   contact: "Sarah Connor",     email: "sconnor@gcs.co.uk",       country: "UK",        terms: 90,  currency: "USD", status: "BLOQUEADO" },
+];
+
+const WAREHOUSES_DATA = [
+  { id:1, name: "Depósito Central",      code: "WH-001", address: "Ruta 8 Km 42, Luján, Buenos Aires", isDefault: true,  isActive: true,  stockCount: 12 },
+  { id:2, name: "Almacén Norte",          code: "WH-002", address: "Av. Industrial 1500, Rosario, Santa Fe", isDefault: false, isActive: true,  stockCount: 8  },
+  { id:3, name: "Centro de Distribución", code: "WH-003", address: "Parque Industrial, Córdoba",            isDefault: false, isActive: true,  stockCount: 5  },
+];
+
+const STOCK_DATA = [
+  { product: "Heno Premium", sku: "FOR-001", warehouse: "Depósito Central",      qty: 180,  reserved: 30,  minStock: 50,  unit: "ton" },
+  { product: "Silaje de Maíz", sku: "FOR-002", warehouse: "Depósito Central",    qty: 42,   reserved: 10,  minStock: 100, unit: "ton" },
+  { product: "Heno Premium", sku: "FOR-001", warehouse: "Almacén Norte",          qty: 65,   reserved: 0,   minStock: 20,  unit: "ton" },
+  { product: "Suplemento Mineral", sku: "FEED-001", warehouse: "Depósito Central", qty: 2800, reserved: 400, minStock: 500, unit: "kg" },
+  { product: "Vitamina E Complejo", sku: "FEED-002", warehouse: "Depósito Central", qty: 120,  reserved: 0,   minStock: 200, unit: "L" },
+  { product: "Rye Grass", sku: "FOR-003", warehouse: "Centro de Distribución",   qty: 8,    reserved: 0,   minStock: 30,  unit: "ton" },
+  { product: "Suplemento Mineral", sku: "FEED-001", warehouse: "Almacén Norte",  qty: 950,  reserved: 200, minStock: 300, unit: "kg" },
+];
+
+const MOVEMENTS_DATA = [
+  { date: "28 Mar 14:30", type: "PURCHASE_RECEIPT", product: "Heno Premium",       warehouse: "Depósito Central", qty: +50,  unitCost: 8500,  ref: "PO-2026-0003" },
+  { date: "27 Mar 10:15", type: "SALE_SHIPMENT",    product: "Silaje de Maíz",      warehouse: "Depósito Central", qty: -15,  unitCost: 12000, ref: "SO-2026-0008" },
+  { date: "26 Mar 16:00", type: "ADJUSTMENT_IN",    product: "Suplemento Mineral",  warehouse: "Almacén Norte",    qty: +500, unitCost: 850,   ref: "ADJ-001" },
+  { date: "25 Mar 09:45", type: "TRANSFER_IN",      product: "Heno Premium",        warehouse: "Almacén Norte",    qty: +20,  unitCost: 8500,  ref: "TRF-007" },
+  { date: "25 Mar 09:45", type: "TRANSFER_OUT",     product: "Heno Premium",        warehouse: "Depósito Central", qty: -20,  unitCost: 8500,  ref: "TRF-007" },
+  { date: "24 Mar 11:00", type: "SALE_SHIPMENT",    product: "Vitamina E Complejo", warehouse: "Depósito Central", qty: -30,  unitCost: 1200,  ref: "SO-2026-0007" },
+  { date: "23 Mar 08:30", type: "PURCHASE_RECEIPT", product: "Rye Grass",           warehouse: "Centro de Distribución", qty: +8, unitCost: 9800, ref: "PO-2026-0002" },
+];
+
+const SALES_ORDERS_DATA = [
+  { num: "SO-2026-0008", account: "Agro del Sur SA",  status: "CONFIRMED",   total: 127500, requested: "5 Abr",   owner: 0 },
+  { num: "SO-2026-0007", account: "GreenField SA",    status: "PROCESSING",  total: 84000,  requested: "1 Abr",   owner: 1 },
+  { num: "SO-2026-0006", account: "FodderTech",       status: "SHIPPED",     total: 36000,  requested: "28 Mar",  owner: 0 },
+  { num: "SO-2026-0005", account: "TechFarm SRL",     status: "DELIVERED",   total: 52000,  requested: "20 Mar",  owner: 2 },
+  { num: "SO-2026-0004", account: "CampoVerde SRL",   status: "DELIVERED",   total: 18000,  requested: "15 Mar",  owner: 3 },
+  { num: "SO-2026-0003", account: "AgroPro SA",       status: "CANCELLED",   total: 22000,  requested: "10 Mar",  owner: 1 },
+  { num: "SO-2026-0002", account: "Agro del Sur SA",  status: "DELIVERED",   total: 91000,  requested: "5 Mar",   owner: 0 },
+];
+
+const PURCHASE_ORDERS_DATA = [
+  { num: "PO-2026-0005", vendor: "AgroInsumos SA",       status: "SUBMITTED",          total: 42000,  delivery: "10 Abr",  owner: 2 },
+  { num: "PO-2026-0004", vendor: "SeedCorp International",status: "APPROVED",           total: 78000,  delivery: "15 Abr",  owner: 0 },
+  { num: "PO-2026-0003", vendor: "Lab Nutrivet",          status: "PARTIALLY_RECEIVED", total: 24500,  delivery: "28 Mar",  owner: 1 },
+  { num: "PO-2026-0002", vendor: "TechEquip Brazil",      status: "RECEIVED",           total: 31200,  delivery: "20 Mar",  owner: 3 },
+  { num: "PO-2026-0001", vendor: "AgroInsumos SA",        status: "RECEIVED",           total: 18900,  delivery: "5 Mar",   owner: 2 },
+];
+
+const INVOICES_DATA = [
+  { num: "INV-2026-0008", account: "Agro del Sur SA",  status: "ISSUED",          total: 127500, paid: 0,      due: "25 Abr" },
+  { num: "INV-2026-0007", account: "GreenField SA",    status: "PARTIALLY_PAID",  total: 84000,  paid: 42000,  due: "15 Abr" },
+  { num: "INV-2026-0006", account: "FodderTech",       status: "SENT",            total: 36000,  paid: 0,      due: "28 Abr" },
+  { num: "INV-2026-0005", account: "TechFarm SRL",     status: "PAID",            total: 52000,  paid: 52000,  due: "20 Mar" },
+  { num: "INV-2026-0004", account: "CampoVerde SRL",   status: "OVERDUE",         total: 18000,  paid: 0,      due: "10 Mar" },
+  { num: "INV-2026-0003", account: "AgroPro SA",       status: "PAID",            total: 22000,  paid: 22000,  due: "5 Mar"  },
+  { num: "INV-2026-0002", account: "Agro del Sur SA",  status: "OVERDUE",         total: 9800,   paid: 0,      due: "28 Feb" },
+];
+
+const HOLDING_COMPANIES = [
+  { name: "Biogrow Fodder",   color: "#059669", leads: 47, pipeline: 284500, closedWon: 91200, arPending: 155300, tasks: 14 },
+  { name: "BiogrowFeed",      color: "#0ea5e9", leads: 31, pipeline: 196000, closedWon: 62000, arPending: 84000,  tasks: 9  },
+  { name: "BiogrowGreens",    color: "#10b981", leads: 22, pipeline: 148000, closedWon: 38500, arPending: 42000,  tasks: 6  },
+  { name: "BG Data Builders", color: "#6366f1", leads: 18, pipeline: 220000, closedWon: 55000, arPending: 68000,  tasks: 11 },
+  { name: "Biogrow Robotics", color: "#8b5cf6", leads: 12, pipeline: 410000, closedWon: 120000,arPending: 95000,  tasks: 7  },
+  { name: "Modular Loft USA", color: "#f59e0b", leads: 9,  pipeline: 320000, closedWon: 85000, arPending: 210000, tasks: 5  },
+  { name: "Prime Tech Blocks",color: "#ef4444", leads: 15, pipeline: 175000, closedWon: 41000, arPending: 31000,  tasks: 8  },
+  { name: "CattleGrow",       color: "#d97706", leads: 28, pipeline: 195000, closedWon: 58000, arPending: 71000,  tasks: 12 },
+];
+
+const ACTIVITIES_DATA = [
+  { type: "LLAMADA",   icon: "📞", color: "#059669", subject: "Llamada de seguimiento con Roberto Suárez", account: "Agro del Sur SA", user: 0, time: "Hoy 09:15", outcome: "Interesado en renovar contrato anual" },
+  { type: "EMAIL",     icon: "✉️", color: "#6366f1", subject: "Propuesta técnica enviada a TechFarm",      account: "TechFarm SRL",    user: 1, time: "Hoy 08:30", outcome: "Adjunta PDF con especificaciones" },
+  { type: "REUNIÓN",   icon: "📅", color: "#f59e0b", subject: "Demo presencial GreenField 2026",           account: "GreenField SA",   user: 0, time: "Ayer 15:00", outcome: "Acordaron segunda reunión con el directorio" },
+  { type: "NOTA",      icon: "📝", color: "#64748b", subject: "Nota de visita a CampoVerde",              account: "CampoVerde SRL",  user: 2, time: "Ayer 11:20", outcome: "Posible upsell en Q3" },
+  { type: "EMAIL",     icon: "✉️", color: "#6366f1", subject: "Cotización Q-2026-0007 enviada",           account: "GreenField SA",   user: 0, time: "Ayer 10:05", outcome: "" },
+  { type: "LLAMADA",   icon: "📞", color: "#059669", subject: "Follow-up AgroPro SA",                     account: "AgroPro SA",      user: 3, time: "26 Mar 16:45", outcome: "No respondió, dejar mensaje" },
+  { type: "REUNIÓN",   icon: "📅", color: "#f59e0b", subject: "Kickoff proyecto FodderTech",              account: "FodderTech",      user: 1, time: "25 Mar 09:00", outcome: "Firmaron SoW, inicia en Abril" },
+  { type: "NOTA",      icon: "📝", color: "#64748b", subject: "Registro visita feria AgriMax",            account: "AgriMax SA",      user: 2, time: "24 Mar 18:00", outcome: "Contacto frío, baja probabilidad" },
+];
+
+// ─── NAVIGATION ─────────────────────────────────────────────────────────
+const SECTION_TITLES = {
+  dashboard: "Dashboard CRM", leads: "Leads", accounts: "Cuentas",
+  contacts: "Contactos", pipeline: "Pipeline", opportunities: "Oportunidades",
+  activities: "Actividades", tasks: "Tareas", quotes: "Cotizaciones",
+  "quote-builder": "Nueva Cotización", forecast: "Forecast",
+  products: "Catálogo de Productos", vendors: "Proveedores",
+  warehouses: "Almacenes", stock: "Stock Actual", movements: "Movimientos",
+  "sales-orders": "Órdenes de Venta", "purchase-orders": "Órdenes de Compra",
+  finance: "Dashboard Financiero", invoices: "Facturas",
+  holding: "Biogrow Group — Holding", reports: "Reportes", settings: "Configuración",
+};
+
+let currentSection = "dashboard";
+let crmExpanded = false;
+let invExpanded = false;
+let salesExpanded = false;
+let finExpanded = false;
+
+function go(id) {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.querySelectorAll(".nav-child").forEach(n => n.classList.remove("active"));
+
+  const sec = document.getElementById("sec-" + id);
+  if (sec) sec.classList.add("active");
+  document.getElementById("topbar-title").textContent = SECTION_TITLES[id] || id;
+
+  const crmSections = ["leads","accounts","contacts","pipeline","opportunities","activities","tasks","quotes","quote-builder","forecast"];
+  const invSections = ["products","vendors","warehouses","stock","movements"];
+  const salesSections = ["sales-orders","purchase-orders"];
+  const finSections = ["finance","invoices"];
+  if (crmSections.includes(id)) {
+    document.getElementById("crm-toggle").classList.add("active");
+    document.querySelectorAll("#crm-children .nav-child").forEach(c => {
+      if (c.textContent.trim().toLowerCase().includes(id) ||
+          (id === "quote-builder" && c.textContent.trim() === "Cotizaciones")) {
+        c.classList.add("active");
+      }
+    });
+    expandCrm(true);
+  } else if (invSections.includes(id)) {
+    document.getElementById("inv-toggle").classList.add("active");
+    const labelMap = { products:"Productos", vendors:"Proveedores", warehouses:"Almacenes", stock:"Stock Actual", movements:"Movimientos" };
+    document.querySelectorAll("#inv-children .nav-child").forEach(c => {
+      if (c.textContent.trim() === labelMap[id]) c.classList.add("active");
+    });
+    expandInventario(true);
+  } else if (salesSections.includes(id)) {
+    document.getElementById("sales-toggle").classList.add("active");
+    const labelMap = { "sales-orders":"Órdenes de Venta", "purchase-orders":"Órdenes de Compra" };
+    document.querySelectorAll("#sales-children .nav-child").forEach(c => {
+      if (c.textContent.trim() === labelMap[id]) c.classList.add("active");
+    });
+    expandSales(true);
+  } else if (finSections.includes(id)) {
+    document.getElementById("fin-toggle").classList.add("active");
+    const labelMap = { finance:"Dashboard Financiero", invoices:"Facturas" };
+    document.querySelectorAll("#fin-children .nav-child").forEach(c => {
+      if (c.textContent.trim() === labelMap[id]) c.classList.add("active");
+    });
+    expandFinanzas(true);
+  } else {
+    document.querySelectorAll(".nav-item").forEach(n => {
+      if (n.textContent.trim().startsWith(SECTION_TITLES[id]?.split(" ")[0])) n.classList.add("active");
+    });
+    if (id === "dashboard") document.querySelector(".nav-item").classList.add("active");
+  }
+  currentSection = id;
+  window.scrollTo(0, 0);
+  renderSection(id);
+}
+
+function toggleCrm() { expandCrm(!crmExpanded); }
+function expandCrm(v) {
+  crmExpanded = v;
+  document.getElementById("crm-children").classList.toggle("hidden", !v);
+  document.getElementById("crm-arrow").style.transform = v ? "rotate(90deg)" : "";
+}
+function toggleInventario() { expandInventario(!invExpanded); }
+function expandInventario(v) {
+  invExpanded = v;
+  document.getElementById("inv-children").classList.toggle("hidden", !v);
+  document.getElementById("inv-arrow").style.transform = v ? "rotate(90deg)" : "";
+}
+function toggleSales() { expandSales(!salesExpanded); }
+function expandSales(v) {
+  salesExpanded = v;
+  document.getElementById("sales-children").classList.toggle("hidden", !v);
+  document.getElementById("sales-arrow").style.transform = v ? "rotate(90deg)" : "";
+}
+function toggleFinanzas() { expandFinanzas(!finExpanded); }
+function expandFinanzas(v) {
+  finExpanded = v;
+  document.getElementById("fin-children").classList.toggle("hidden", !v);
+  document.getElementById("fin-arrow").style.transform = v ? "rotate(90deg)" : "";
+}
+
+// ─── RENDER ─────────────────────────────────────────────────────────────
+function fmt(n) { return "$" + n.toLocaleString("es-AR"); }
+function avatar(r, sm) { return `<div class="avatar${sm?" avatar-sm":""}" style="background:${r.color}">${r.initials}</div>`; }
+
+const STATUS_BADGE = {
+  NUEVO: "badge-blue", CONTACTADO: "badge-yellow", CALIFICADO: "badge-purple",
+  NO_CALIFICADO: "badge-red", CONVERTIDO: "badge-green",
+  CLIENTE: "badge-green", PROSPECTO: "badge-blue", PARTNER: "badge-purple", PERDIDO: "badge-red",
+  COMMIT: "badge-purple", BEST_CASE: "badge-yellow", PIPELINE: "badge-gray", CLOSED_WON: "badge-green",
+  ACEPTADA: "badge-green", ENVIADA: "badge-blue", VISTA: "badge-yellow", BORRADOR: "badge-gray", RECHAZADA: "badge-red", VENCIDA: "badge-gray",
+  PENDIENTE: "badge-gray", EN_PROGRESO: "badge-yellow", COMPLETADA: "badge-green",
+  ALTA: "badge-yellow", URGENTE: "badge-red", MEDIA: "badge-blue", BAJA: "badge-gray",
+  // ERP — Sales Orders
+  DRAFT: "badge-gray", CONFIRMED: "badge-blue", PROCESSING: "badge-yellow",
+  SHIPPED: "badge-purple", DELIVERED: "badge-green", CANCELLED: "badge-red",
+  // ERP — Purchase Orders
+  SUBMITTED: "badge-blue", APPROVED: "badge-green", PARTIALLY_RECEIVED: "badge-yellow",
+  RECEIVED: "badge-green",
+  // ERP — Invoices
+  ISSUED: "badge-blue", SENT: "badge-purple", PARTIALLY_PAID: "badge-yellow",
+  PAID: "badge-green", OVERDUE: "badge-red", VOID: "badge-gray",
+  // Inventory movements
+  PURCHASE_RECEIPT: "badge-green", SALE_SHIPMENT: "badge-blue",
+  ADJUSTMENT_IN: "badge-green", ADJUSTMENT_OUT: "badge-red",
+  TRANSFER_IN: "badge-yellow", TRANSFER_OUT: "badge-yellow",
+};
+
+function renderSection(id) {
+  if (id === "leads") renderLeads();
+  else if (id === "accounts") renderAccounts();
+  else if (id === "contacts") renderContacts();
+  else if (id === "pipeline") renderPipeline();
+  else if (id === "opportunities") renderOpps();
+  else if (id === "activities") renderActivities();
+  else if (id === "tasks") renderTasks();
+  else if (id === "quotes") renderQuotes();
+  else if (id === "forecast") renderForecast();
+  else if (id === "quote-builder") initQuoteBuilder();
+  else if (id === "dashboard") setTimeout(renderCharts, 100);
+  else if (id === "products") renderProducts();
+  else if (id === "vendors") renderVendors();
+  else if (id === "warehouses") renderWarehouses();
+  else if (id === "stock") renderStock();
+  else if (id === "movements") renderMovements();
+  else if (id === "sales-orders") renderSalesOrders();
+  else if (id === "purchase-orders") renderPurchaseOrders();
+  else if (id === "finance") renderFinance();
+  else if (id === "invoices") renderInvoices();
+  else if (id === "holding") renderHolding();
+}
+
+function renderLeads() {
+  document.getElementById("leads-body").innerHTML = LEADS_DATA.map(l => `
+    <tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3"><div class="font-medium text-slate-900 text-sm">${l.name}</div><div class="text-xs text-slate-400">${l.company}</div></td>
+      <td class="px-4 py-3 text-sm text-slate-600">${l.company}</td>
+      <td class="px-4 py-3 text-xs text-slate-500">${l.source}</td>
+      <td class="px-4 py-3"><span class="badge ${STATUS_BADGE[l.status]||"badge-gray"}">${l.status.replace("_"," ")}</span></td>
+      <td class="px-4 py-3"><div class="flex items-center gap-2">${avatar(rep(l.owner),true)}<span class="text-xs text-slate-500">${rep(l.owner).name}</span></div></td>
+      <td class="px-4 py-3 text-xs text-slate-400">${l.date}</td>
+    </tr>`).join("");
+}
+
+function renderAccounts() {
+  document.getElementById("accounts-body").innerHTML = ACCOUNTS_DATA.map(a => {
+    const hc = a.health >= 70 ? "bg-emerald-500" : a.health >= 40 ? "bg-amber-500" : "bg-red-400";
+    return `<tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3 font-medium text-slate-900 text-sm">${a.name}<div class="text-xs text-slate-400">${a.industry}</div></td>
+      <td class="px-4 py-3"><span class="badge ${STATUS_BADGE[a.type]||"badge-gray"}">${a.type}</span></td>
+      <td class="px-4 py-3 text-xs text-slate-500">${a.industry}</td>
+      <td class="px-4 py-3"><div class="flex items-center gap-2"><div class="health-bar w-16"><div class="health-fill ${hc}" style="width:${a.health}%"></div></div><span class="text-xs text-slate-500">${a.health}</span></div></td>
+      <td class="px-4 py-3 text-center text-sm text-slate-600">${a.contacts}</td>
+      <td class="px-4 py-3 text-center text-sm text-slate-600">${a.opps}</td>
+      <td class="px-4 py-3"><div class="flex items-center gap-2">${avatar(rep(a.owner),true)}<span class="text-xs text-slate-500">${rep(a.owner).name}</span></div></td>
+    </tr>`;}).join("");
+}
+
+function renderContacts() {
+  document.getElementById("contacts-body").innerHTML = CONTACTS_DATA.map(c => `
+    <tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3"><div class="flex items-center gap-2.5">
+        <div class="avatar" style="background:#059669;width:28px;height:28px;font-size:10px">${c.first[0]}${c.last[0]}</div>
+        <div><div class="font-medium text-slate-900 text-sm">${c.first} ${c.last}${c.primary?'<span class="badge badge-blue ml-1.5 text-xs">Principal</span>':''}</div></div>
+      </div></td>
+      <td class="px-4 py-3 text-xs text-slate-500">${c.title||"—"}</td>
+      <td class="px-4 py-3 text-xs text-slate-600">${c.account}</td>
+      <td class="px-4 py-3 text-xs text-slate-500">${c.email||"—"}</td>
+      <td class="px-4 py-3 text-xs text-slate-500">${c.phone||"—"}</td>
+    </tr>`).join("");
+}
+
+function renderPipeline() {
+  const board = document.getElementById("kanban-board");
+  const byStage = PIPELINE_STAGES.map((_,i) => OPPS_DATA.filter(o => o.stage === i));
+  board.innerHTML = PIPELINE_STAGES.map((s, i) => `
+    <div class="kanban-col">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full" style="background:${s.color}"></span>
+          <span class="text-xs font-semibold text-slate-700">${s.name}</span>
+        </div>
+        <span class="text-xs text-slate-400">${byStage[i].length}</span>
+      </div>
+      <div class="text-xs text-slate-400 mb-3">${fmt(byStage[i].reduce((a,o)=>a+o.amount,0))}</div>
+      ${byStage[i].map(o => `
+        <div class="kanban-card">
+          <div class="text-xs font-semibold text-slate-800 mb-1">${o.name}</div>
+          <div class="text-xs text-slate-400 mb-2">${o.account}</div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700">${fmt(o.amount)}</span>
+            ${avatar(rep(o.owner),true)}
+          </div>
+          <div class="text-xs text-slate-400 mt-1">Cierre: ${o.close}</div>
+        </div>`).join("")}
+    </div>`).join("");
+}
+
+function renderOpps() {
+  const CAT = { COMMIT:"badge-purple", BEST_CASE:"badge-yellow", PIPELINE:"badge-gray", CLOSED_WON:"badge-green" };
+  const CATLABEL = { COMMIT:"Commit", BEST_CASE:"Mejor Caso", PIPELINE:"Pipeline", CLOSED_WON:"Cerrado" };
+  document.getElementById("opps-body").innerHTML = OPPS_DATA.map(o => `
+    <tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3"><div class="font-medium text-slate-900 text-sm">${o.name}</div><div class="text-xs text-slate-400">${o.account}</div></td>
+      <td class="px-4 py-3"><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:${PIPELINE_STAGES[o.stage].color}"></span><span class="text-xs text-slate-600">${PIPELINE_STAGES[o.stage].name}</span></div></td>
+      <td class="px-4 py-3"><span class="badge ${CAT[o.cat]||"badge-gray"}">${CATLABEL[o.cat]||o.cat}</span></td>
+      <td class="px-4 py-3 text-right font-semibold text-slate-900 text-sm">${fmt(o.amount)}</td>
+      <td class="px-4 py-3 text-xs text-slate-500">${o.close}</td>
+      <td class="px-4 py-3"><div class="flex items-center gap-2">${avatar(rep(o.owner),true)}<span class="text-xs text-slate-500">${rep(o.owner).name}</span></div></td>
+    </tr>`).join("");
+}
+
+function renderActivities() {
+  const ACOLOR = { LLAMADA:"#059669", EMAIL:"#6366f1", REUNIÓN:"#f59e0b", NOTA:"#64748b" };
+  document.getElementById("activities-feed").innerHTML = ACTIVITIES_DATA.map(a => `
+    <div class="activity-item">
+      <div class="activity-dot" style="background:${ACOLOR[a.type]||"#64748b"}"></div>
+      <div class="flex-1">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <span class="badge ${a.type==="LLAMADA"?"badge-green":a.type==="EMAIL"?"badge-purple":a.type==="REUNIÓN"?"badge-yellow":"badge-gray"} mr-2">${a.icon} ${a.type}</span>
+            <span class="text-sm font-medium text-slate-800">${a.subject}</span>
+          </div>
+          <span class="text-xs text-slate-400 whitespace-nowrap">${a.time}</span>
+        </div>
+        <div class="flex items-center gap-3 mt-1">
+          <span class="text-xs text-slate-500">${a.account}</span>
+          <span class="text-slate-300">·</span>
+          <div class="flex items-center gap-1">${avatar(rep(a.user),true)}<span class="text-xs text-slate-400">${rep(a.user).name}</span></div>
+        </div>
+        ${a.outcome ? `<div class="text-xs text-slate-500 mt-1 italic">"${a.outcome}"</div>` : ""}
+      </div>
+    </div>`).join("");
+}
+
+function renderTasks() {
+  document.getElementById("tasks-body").innerHTML = TASKS_DATA.map(t => `
+    <tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3"><div class="font-medium text-slate-900 text-sm">${t.title}</div></td>
+      <td class="px-4 py-3"><span class="badge ${STATUS_BADGE[t.priority]||"badge-gray"}">${t.priority}</span></td>
+      <td class="px-4 py-3"><span class="badge ${STATUS_BADGE[t.status]||"badge-gray"}">${t.status.replace("_"," ")}</span></td>
+      <td class="px-4 py-3 text-xs ${t.due==="Hoy"?"text-red-500 font-semibold":"text-slate-500"}">${t.due}</td>
+      <td class="px-4 py-3"><div class="flex items-center gap-2">${avatar(rep(t.assignee),true)}<span class="text-xs text-slate-500">${rep(t.assignee).name}</span></div></td>
+      <td class="px-4 py-3 text-xs text-slate-500">${t.related}</td>
+    </tr>`).join("");
+}
+
+function renderQuotes() {
+  const SB = { ACEPTADA:"badge-green", ENVIADA:"badge-blue", VISTA:"badge-yellow", BORRADOR:"badge-gray", RECHAZADA:"badge-red", VENCIDA:"badge-gray" };
+  document.getElementById("quotes-body").innerHTML = QUOTES_DATA.map(q => `
+    <tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3"><span class="font-mono text-xs font-medium text-slate-800">${q.num}</span></td>
+      <td class="px-4 py-3 text-sm text-slate-600">${q.account}</td>
+      <td class="px-4 py-3"><span class="badge ${SB[q.status]||"badge-gray"}">${q.status}</span></td>
+      <td class="px-4 py-3 text-right font-semibold text-slate-900 text-sm">${fmt(q.total)}</td>
+      <td class="px-4 py-3 text-xs text-slate-500">${q.valid}</td>
+      <td class="px-4 py-3 text-xs text-slate-400">${q.created}</td>
+    </tr>`).join("");
+}
+
+function renderForecast() {
+  const CAT = { COMMIT:"badge-purple", BEST_CASE:"badge-yellow", PIPELINE:"badge-gray" };
+  const CATLABEL = { COMMIT:"Commit", BEST_CASE:"Mejor Caso", PIPELINE:"Pipeline" };
+  document.getElementById("forecast-body").innerHTML = OPPS_DATA.map(o => `
+    <tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3"><div class="font-medium text-slate-900 text-sm">${o.name}</div><div class="text-xs text-slate-400">${o.account}</div></td>
+      <td class="px-4 py-3 text-xs text-slate-600">${PIPELINE_STAGES[o.stage].name}</td>
+      <td class="px-4 py-3"><span class="badge ${CAT[o.cat]||"badge-gray"}">${CATLABEL[o.cat]||o.cat}</span></td>
+      <td class="px-4 py-3 text-right font-semibold text-slate-900 text-sm">${fmt(o.amount)}</td>
+      <td class="px-4 py-3 text-xs text-slate-500">${o.close}</td>
+    </tr>`).join("");
+}
+
+// ─── CHARTS ──────────────────────────────────────────────────────────────
+function renderCharts() {
+  // Funnel
+  const fc = echarts.init(document.getElementById("chart-funnel"));
+  fc.setOption({ tooltip: { trigger: "item", formatter: "{b}: {c}" },
+    series: [{ type: "funnel", sort: "none", gap: 4, label: { show: true, position: "inside", fontSize: 11, color: "#fff", formatter: "{b}\n{c} opps" },
+      data: PIPELINE_STAGES.slice(0,-1).map((s,i) => ({ name: s.name, value: OPPS_DATA.filter(o=>o.stage===i).length * 10 + 20, itemStyle: { color: s.color } })) }] });
+
+  // Revenue
+  const rc = echarts.init(document.getElementById("chart-revenue"));
+  rc.setOption({
+    tooltip: { trigger: "axis", axisPointer: { type: "cross" } },
+    legend: { data: ["Cerrado Ganado","Pipeline"], bottom: 0, textStyle: { fontSize: 11 }, icon: "circle", itemWidth: 8, itemHeight: 8 },
+    grid: { top: 16, right: 8, bottom: 36, left: 8, containLabel: true },
+    xAxis: { type: "category", data: ["Oct","Nov","Dic","Ene","Feb","Mar"], axisLine: { show: false }, axisTick: { show: false }, axisLabel: { fontSize: 11, color: "#9ca3af" } },
+    yAxis: { type: "value", axisLabel: { fontSize: 10, color: "#9ca3af", formatter: v => "$"+v/1000+"k" }, splitLine: { lineStyle: { color: "#f3f4f6" } }, axisLine: { show: false }, axisTick: { show: false } },
+    series: [
+      { name: "Cerrado Ganado", type: "bar", data: [42000,58000,69000,51000,81000,91200], itemStyle: { color: "#10b981", borderRadius: [4,4,0,0] } },
+      { name: "Pipeline",       type: "line", data: [95000,110000,98000,140000,165000,284500], symbol: "circle", symbolSize: 5, lineStyle: { color: "#6366f1", width: 2 }, itemStyle: { color: "#6366f1" }, areaStyle: { color: "rgba(99,102,241,0.06)" } },
+    ]
+  });
+}
+
+// ─── PRODUCTS ────────────────────────────────────────────────────────────
+function renderProducts() {
+  const TYPE_BADGE = { "FÍSICO": "badge-blue", "SERVICIO": "badge-green", "DIGITAL": "badge-purple" };
+  const counts = PRODUCTS_DATA.reduce((a, p) => { a[p.type] = (a[p.type]||0)+1; return a; }, {});
+  document.getElementById("products-kpis").innerHTML = Object.entries(counts).map(([t,c]) => `
+    <div class="kpi-card flex items-center gap-3">
+      <div>
+        <div class="text-xl font-bold text-slate-900">${c}</div>
+        <div class="text-xs text-slate-500">${t}s</div>
+      </div>
+    </div>`).join("");
+  document.getElementById("products-body").innerHTML = PRODUCTS_DATA.map(p => `
+    <tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3">
+        <div class="font-medium text-slate-900 text-sm">${p.name}</div>
+        ${p.sku ? `<code class="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">${p.sku}</code>` : ""}
+      </td>
+      <td class="px-4 py-3"><span class="badge ${TYPE_BADGE[p.type]||"badge-gray"}">${p.type}</span></td>
+      <td class="px-4 py-3 text-xs text-slate-500">${p.category}</td>
+      <td class="px-4 py-3 text-xs text-slate-500">${p.unit}</td>
+      <td class="px-4 py-3 text-right font-medium text-slate-900 text-sm">$${p.price.toLocaleString("es-AR")}</td>
+      <td class="px-4 py-3 text-right text-xs text-slate-500">${p.tax}%</td>
+      <td class="px-4 py-3"><span class="badge ${p.active ? "badge-green" : "badge-gray"}">${p.active ? "Activo" : "Inactivo"}</span></td>
+    </tr>`).join("");
+}
+
+function renderVendors() {
+  const STATUS_BADGE = { "ACTIVO": "badge-green", "INACTIVO": "badge-gray", "BLOQUEADO": "badge-red" };
+  document.getElementById("vendors-body").innerHTML = VENDORS_DATA.map(v => `
+    <tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3">
+        <div class="font-medium text-slate-900 text-sm">${v.name}</div>
+        ${v.legal !== v.name ? `<div class="text-xs text-slate-400">${v.legal}</div>` : ""}
+      </td>
+      <td class="px-4 py-3 text-xs font-mono text-slate-600">${v.taxId}</td>
+      <td class="px-4 py-3">
+        <div class="text-xs font-medium text-slate-700">${v.contact}</div>
+        <div class="text-xs text-slate-400">${v.email}</div>
+      </td>
+      <td class="px-4 py-3 text-xs text-slate-500">${v.country}</td>
+      <td class="px-4 py-3 text-xs text-slate-500">${v.terms} días</td>
+      <td class="px-4 py-3 text-xs font-medium text-slate-600">${v.currency}</td>
+      <td class="px-4 py-3"><span class="badge ${STATUS_BADGE[v.status]||"badge-gray"}">${v.status}</span></td>
+    </tr>`).join("");
+}
+
+// ─── ERP RENDER FUNCTIONS ───────────────────────────────────────────────
+function renderWarehouses() {
+  document.getElementById("warehouses-grid").innerHTML = WAREHOUSES_DATA.map(w => `
+    <div class="kpi-card cursor-pointer hover:shadow-md transition-shadow" onclick="go('stock')">
+      <div class="flex items-center justify-between mb-3">
+        <div class="h-9 w-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+          <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+        </div>
+        ${w.isDefault ? '<span class="badge badge-green">Principal</span>' : ""}
+      </div>
+      <div class="font-semibold text-slate-900 text-sm">${w.name}</div>
+      <div class="text-xs text-slate-400 mt-0.5 mb-3">${w.code} · ${w.address}</div>
+      <div class="text-xl font-bold text-slate-900">${w.stockCount}<span class="text-xs font-normal text-slate-400 ml-1">productos</span></div>
+    </div>`).join("");
+}
+
+function renderStock() {
+  const lowStock = STOCK_DATA.filter(s => s.qty <= s.minStock);
+  const alert = document.getElementById("stock-alert");
+  if (lowStock.length > 0) {
+    alert.classList.remove("hidden");
+    alert.textContent = `⚠ ${lowStock.length} producto(s) por debajo del stock mínimo: ${lowStock.map(s=>s.product).join(", ")}`;
+  } else {
+    alert.classList.add("hidden");
+  }
+  document.getElementById("stock-body").innerHTML = STOCK_DATA.map(s => {
+    const available = s.qty - s.reserved;
+    const low = s.qty <= s.minStock;
+    return `<tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3">
+        <div class="font-medium text-slate-900 text-sm">${s.product}</div>
+        <code class="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">${s.sku}</code>
+      </td>
+      <td class="px-4 py-3 text-xs text-slate-500">${s.warehouse}</td>
+      <td class="px-4 py-3 text-right text-sm font-medium ${low ? "text-amber-600" : "text-slate-900"}">${s.qty.toLocaleString("es-AR")} ${s.unit}</td>
+      <td class="px-4 py-3 text-right text-xs text-slate-500">${s.reserved > 0 ? s.reserved.toLocaleString("es-AR") : "—"}</td>
+      <td class="px-4 py-3 text-right text-sm font-semibold text-emerald-700">${available.toLocaleString("es-AR")} ${s.unit}</td>
+      <td class="px-4 py-3 text-right text-xs text-slate-400">${s.minStock.toLocaleString("es-AR")}</td>
+      <td class="px-4 py-3"><span class="badge ${low ? "badge-yellow" : "badge-green"}">${low ? "Stock bajo" : "OK"}</span></td>
+    </tr>`;
+  }).join("");
+}
+
+function renderMovements() {
+  const MOV_LABEL = { PURCHASE_RECEIPT:"Recepción compra", SALE_SHIPMENT:"Despacho venta",
+    ADJUSTMENT_IN:"Ajuste entrada", ADJUSTMENT_OUT:"Ajuste salida",
+    TRANSFER_IN:"Transferencia entrada", TRANSFER_OUT:"Transferencia salida" };
+  document.getElementById("movements-body").innerHTML = MOVEMENTS_DATA.map(m => {
+    const positive = m.qty > 0;
+    return `<tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3 text-xs text-slate-400">${m.date}</td>
+      <td class="px-4 py-3"><span class="badge ${STATUS_BADGE[m.type]||"badge-gray"}">${MOV_LABEL[m.type]||m.type}</span></td>
+      <td class="px-4 py-3 text-sm font-medium text-slate-800">${m.product}</td>
+      <td class="px-4 py-3 text-xs text-slate-500">${m.warehouse}</td>
+      <td class="px-4 py-3 text-right text-sm font-bold ${positive ? "text-emerald-600" : "text-rose-500"}">${positive ? "+" : ""}${m.qty.toLocaleString("es-AR")}</td>
+      <td class="px-4 py-3 text-right text-xs text-slate-600">$${m.unitCost.toLocaleString("es-AR")}</td>
+      <td class="px-4 py-3"><code class="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">${m.ref}</code></td>
+    </tr>`;
+  }).join("");
+}
+
+function renderSalesOrders() {
+  const SO_LABEL = { DRAFT:"Borrador", CONFIRMED:"Confirmada", PROCESSING:"En proceso", SHIPPED:"Despachada", DELIVERED:"Entregada", CANCELLED:"Cancelada" };
+  const counts = SALES_ORDERS_DATA.reduce((a,o) => { a[o.status]=(a[o.status]||0)+1; return a; }, {});
+  document.getElementById("so-kpis").innerHTML = [
+    { label:"En proceso", statuses:["CONFIRMED","PROCESSING","SHIPPED"], badge:"badge-blue" },
+    { label:"Entregadas",  statuses:["DELIVERED"],                        badge:"badge-green" },
+    { label:"Canceladas", statuses:["CANCELLED"],                        badge:"badge-red" },
+  ].map(k => {
+    const n = k.statuses.reduce((s,st) => s+(counts[st]||0), 0);
+    return `<div class="kpi-card"><div class="text-2xl font-bold text-slate-900">${n}</div><div class="text-xs text-slate-500 mt-1">${k.label}</div></div>`;
+  }).join("") + `<div class="kpi-card"><div class="text-2xl font-bold text-slate-900">$${SALES_ORDERS_DATA.filter(o=>o.status!=="CANCELLED").reduce((s,o)=>s+o.total,0).toLocaleString("es-AR")}</div><div class="text-xs text-slate-500 mt-1">Total activo</div></div>`;
+  document.getElementById("so-body").innerHTML = SALES_ORDERS_DATA.map(o => `
+    <tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3"><code class="text-xs font-mono text-emerald-700">${o.num}</code></td>
+      <td class="px-4 py-3 text-sm font-medium text-slate-800">${o.account}</td>
+      <td class="px-4 py-3"><span class="badge ${STATUS_BADGE[o.status]||"badge-gray"}">${SO_LABEL[o.status]||o.status}</span></td>
+      <td class="px-4 py-3 text-right text-sm font-semibold text-slate-900">${fmt(o.total)}</td>
+      <td class="px-4 py-3 text-xs text-slate-500">${o.requested}</td>
+      <td class="px-4 py-3"><div class="flex items-center gap-2">${avatar(rep(o.owner),true)}<span class="text-xs text-slate-500">${rep(o.owner).name}</span></div></td>
+    </tr>`).join("");
+}
+
+function renderPurchaseOrders() {
+  const PO_LABEL = { DRAFT:"Borrador", SUBMITTED:"Enviada", APPROVED:"Aprobada", PARTIALLY_RECEIVED:"Recibida parcial", RECEIVED:"Recibida", CANCELLED:"Cancelada" };
+  const pendingApproval = PURCHASE_ORDERS_DATA.filter(p => p.status === "SUBMITTED");
+  const alert = document.getElementById("po-pending-alert");
+  if (pendingApproval.length > 0) {
+    alert.classList.remove("hidden");
+    alert.textContent = `⚠ ${pendingApproval.length} orden(es) pendiente(s) de aprobación: ${pendingApproval.map(p=>p.num).join(", ")}`;
+  } else {
+    alert.classList.add("hidden");
+  }
+  document.getElementById("po-body").innerHTML = PURCHASE_ORDERS_DATA.map(o => `
+    <tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3"><code class="text-xs font-mono text-indigo-700">${o.num}</code></td>
+      <td class="px-4 py-3 text-sm font-medium text-slate-800">${o.vendor}</td>
+      <td class="px-4 py-3"><span class="badge ${STATUS_BADGE[o.status]||"badge-gray"}">${PO_LABEL[o.status]||o.status}</span></td>
+      <td class="px-4 py-3 text-right text-sm font-semibold text-slate-900">${fmt(o.total)}</td>
+      <td class="px-4 py-3 text-xs text-slate-500">${o.delivery}</td>
+      <td class="px-4 py-3"><div class="flex items-center gap-2">${avatar(rep(o.owner),true)}<span class="text-xs text-slate-500">${rep(o.owner).name}</span></div></td>
+    </tr>`).join("");
+}
+
+function renderFinance() {
+  const total = INVOICES_DATA.reduce((s,i) => s+i.total, 0);
+  const paid  = INVOICES_DATA.reduce((s,i) => s+i.paid, 0);
+  const overdue = INVOICES_DATA.filter(i => i.status === "OVERDUE").reduce((s,i) => s+(i.total-i.paid), 0);
+  const open = INVOICES_DATA.filter(i => !["PAID","VOID"].includes(i.status)).length;
+  document.getElementById("fin-kpis").innerHTML = [
+    { label:"AR Total", val: fmt(total-paid), sub: `${open} facturas abiertas`, cls:"" },
+    { label:"Vencido",  val: fmt(overdue),    sub: "A cobrar urgente",           cls:"text-rose-600" },
+    { label:"Cobrado (mes)", val: fmt(paid),  sub: "Pagos recibidos",            cls:"text-emerald-600" },
+    { label:"Órdenes activas", val: PURCHASE_ORDERS_DATA.filter(p=>["APPROVED","PARTIALLY_RECEIVED"].includes(p.status)).length, sub:"POs en proceso", cls:"" },
+  ].map(k => `<div class="kpi-card"><div class="text-xs font-medium text-slate-500 mb-1">${k.label}</div><div class="text-2xl font-bold ${k.cls||"text-slate-900"}">${k.val}</div><div class="text-xs text-slate-400 mt-1">${k.sub}</div></div>`).join("");
+
+  const arBuckets = [
+    { label:"Corriente (no vencido)", amount: INVOICES_DATA.filter(i=>i.status==="ISSUED"||i.status==="SENT").reduce((s,i)=>s+(i.total-i.paid),0), cls:"text-emerald-600" },
+    { label:"Vencido 1–30 días",      amount: INVOICES_DATA.filter(i=>i.status==="PARTIALLY_PAID").reduce((s,i)=>s+(i.total-i.paid),0), cls:"text-amber-600" },
+    { label:"Vencido 30–60 días",     amount: 0, cls:"text-orange-600" },
+    { label:"Vencido +60 días",       amount: INVOICES_DATA.filter(i=>i.status==="OVERDUE").reduce((s,i)=>s+(i.total-i.paid),0), cls:"text-rose-600" },
+  ];
+  document.getElementById("ar-aging").innerHTML = arBuckets.map(b => `
+    <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+      <span class="text-xs text-slate-600">${b.label}</span>
+      <span class="text-sm font-bold ${b.cls}">${b.amount > 0 ? fmt(b.amount) : "—"}</span>
+    </div>`).join("");
+
+  const cfRows = [
+    { month:"Oct 25", inflow:91000,  outflow:62000 },
+    { month:"Nov 25", inflow:115000, outflow:71000 },
+    { month:"Dic 25", inflow:98000,  outflow:55000 },
+    { month:"Ene 26", inflow:132000, outflow:88000 },
+    { month:"Feb 26", inflow:142000, outflow:79000 },
+    { month:"Mar 26", inflow:155000, outflow:92000 },
+  ];
+  document.getElementById("cashflow-table").innerHTML = `
+    <div class="space-y-1.5">
+      ${cfRows.map(r => { const net=r.inflow-r.outflow; return `
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-slate-400 w-12 shrink-0">${r.month}</span>
+        <div class="flex-1 flex gap-1 h-5">
+          <div class="bg-emerald-100 rounded text-xs flex items-center justify-end pr-1 font-medium text-emerald-700" style="width:${Math.round(r.inflow/2000)}px;min-width:4px">${fmt(r.inflow/1000).replace("$","$")}k</div>
+          <div class="bg-rose-100 rounded text-xs flex items-center justify-end pr-1 font-medium text-rose-500" style="width:${Math.round(r.outflow/2000)}px;min-width:4px">-${fmt(r.outflow/1000)}k</div>
+        </div>
+        <span class="text-xs font-bold ${net>=0?"text-emerald-600":"text-rose-500"} w-16 text-right shrink-0">${net>=0?"+":""}${fmt(net/1000)}k</span>
+      </div>`;}).join("")}
+    </div>`;
+}
+
+function renderInvoices() {
+  const INV_LABEL = { DRAFT:"Borrador", ISSUED:"Emitida", SENT:"Enviada", PARTIALLY_PAID:"Pago parcial", PAID:"Pagada", OVERDUE:"Vencida", VOID:"Anulada" };
+  document.getElementById("invoices-body").innerHTML = INVOICES_DATA.map(i => {
+    const balance = i.total - i.paid;
+    const overdue = i.status === "OVERDUE";
+    return `<tr class="table-row border-b border-slate-50">
+      <td class="px-4 py-3"><code class="text-xs font-mono text-indigo-700">${i.num}</code></td>
+      <td class="px-4 py-3 text-sm font-medium text-slate-800">${i.account}</td>
+      <td class="px-4 py-3"><span class="badge ${STATUS_BADGE[i.status]||"badge-gray"}">${INV_LABEL[i.status]||i.status}</span></td>
+      <td class="px-4 py-3 text-right text-sm font-semibold text-slate-900">${fmt(i.total)}</td>
+      <td class="px-4 py-3 text-right text-sm text-emerald-600">${i.paid > 0 ? fmt(i.paid) : "—"}</td>
+      <td class="px-4 py-3 text-right text-sm font-bold ${overdue ? "text-rose-500" : balance > 0 ? "text-amber-600" : "text-slate-400"}">${balance > 0 ? fmt(balance) : "—"}</td>
+      <td class="px-4 py-3 text-xs ${overdue ? "text-rose-500 font-semibold" : "text-slate-400"}">${i.due}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderHolding() {
+  const totals = HOLDING_COMPANIES.reduce((a,c) => ({
+    leads: a.leads+c.leads, pipeline: a.pipeline+c.pipeline,
+    closedWon: a.closedWon+c.closedWon, arPending: a.arPending+c.arPending, tasks: a.tasks+c.tasks
+  }), { leads:0, pipeline:0, closedWon:0, arPending:0, tasks:0 });
+
+  document.getElementById("holding-kpis").innerHTML = [
+    { label:"Nuevos Leads (mes)", val: totals.leads,                     sub:`${HOLDING_COMPANIES.length} empresas activas`, icon:"badge-green" },
+    { label:"Pipeline Total",     val: fmt(totals.pipeline),             sub:`${HOLDING_COMPANIES.reduce((s,c)=>s+(c.pipeline>0?1:0),0)} con pipeline abierto`, icon:"badge-blue" },
+    { label:"Cerrado Ganado",     val: fmt(totals.closedWon),            sub:"Mes actual",   icon:"badge-green" },
+    { label:"AR Pendiente",       val: fmt(totals.arPending),            sub:"Por cobrar",   icon:"badge-yellow" },
+  ].map(k => `<div class="kpi-card"><div class="text-xs font-medium text-slate-500 mb-1">${k.label}</div><div class="text-2xl font-bold text-slate-900">${k.val}</div><div class="text-xs text-slate-400 mt-1">${k.sub}</div></div>`).join("");
+
+  const maxRevenue = Math.max(...HOLDING_COMPANIES.map(c => c.closedWon), 1);
+  document.getElementById("holding-trend").innerHTML = `<div class="space-y-2">${HOLDING_COMPANIES.slice().sort((a,b)=>b.closedWon-a.closedWon).map(c => `
+    <div class="flex items-center gap-3">
+      <div class="h-2.5 w-2.5 rounded-full shrink-0" style="background:${c.color}"></div>
+      <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full rounded-full" style="width:${Math.round(c.closedWon/maxRevenue*100)}%;background:${c.color}"></div>
+      </div>
+      <span class="text-xs font-medium text-slate-600 w-20 text-right shrink-0">${fmt(c.closedWon)}</span>
+    </div>`).join("")}</div>`;
+
+  document.getElementById("holding-opps").innerHTML = `<div class="space-y-2">${HOLDING_COMPANIES.slice().sort((a,b)=>b.pipeline-a.pipeline).slice(0,6).map(c => `
+    <div class="flex items-center gap-3 py-1.5 border-b border-slate-50 last:border-0">
+      <div class="h-2 w-2 rounded-full shrink-0" style="background:${c.color}"></div>
+      <div class="flex-1 text-xs font-medium text-slate-800">${c.name}</div>
+      <span class="text-xs font-bold text-slate-900">${fmt(c.pipeline)}</span>
+    </div>`).join("")}</div>`;
+
+  document.getElementById("holding-breakdown").innerHTML = HOLDING_COMPANIES.map(c => `
+    <tr class="table-row border-b border-slate-50 hover:bg-slate-50">
+      <td class="px-5 py-3"><div class="flex items-center gap-2.5"><div class="h-3 w-3 rounded-full" style="background:${c.color}"></div><span class="font-medium text-slate-900 text-sm">${c.name}</span></div></td>
+      <td class="px-4 py-3 text-right text-sm text-slate-700">${c.leads}</td>
+      <td class="px-4 py-3 text-right text-sm font-medium text-slate-900">${fmt(c.pipeline)}</td>
+      <td class="px-4 py-3 text-right text-sm font-medium text-emerald-600">${fmt(c.closedWon)}</td>
+      <td class="px-4 py-3 text-right text-sm text-amber-600">${fmt(c.arPending)}</td>
+      <td class="px-4 py-3 text-right text-sm text-slate-600">${c.tasks}</td>
+    </tr>`).join("");
+
+  document.getElementById("holding-totals").innerHTML = `
+    <tr>
+      <td class="px-5 py-3 text-xs font-bold text-slate-700 uppercase">Consolidado</td>
+      <td class="px-4 py-3 text-right text-sm font-bold text-slate-900">${totals.leads}</td>
+      <td class="px-4 py-3 text-right text-sm font-bold text-slate-900">${fmt(totals.pipeline)}</td>
+      <td class="px-4 py-3 text-right text-sm font-bold text-emerald-600">${fmt(totals.closedWon)}</td>
+      <td class="px-4 py-3 text-right text-sm font-bold text-amber-600">${fmt(totals.arPending)}</td>
+      <td class="px-4 py-3 text-right text-sm font-bold text-slate-900">${totals.tasks}</td>
+    </tr>`;
+}
+
+// ─── QUOTE BUILDER ──────────────────────────────────────────────────────
+let quoteLines = [];
+function initQuoteBuilder() {
+  quoteLines = [{ desc: "", qty: 1, price: 0, disc: 0 }];
+  renderQuoteLines();
+}
+function addQuoteLine() { quoteLines.push({ desc: "", qty: 1, price: 0, disc: 0 }); renderQuoteLines(); }
+function removeQuoteLine(i) { if (quoteLines.length > 1) { quoteLines.splice(i, 1); renderQuoteLines(); } }
+function renderQuoteLines() {
+  document.getElementById("quote-lines").innerHTML = quoteLines.map((l, i) => `
+    <tr class="border-b border-slate-50">
+      <td class="px-4 py-2"><input class="w-full border border-slate-200 rounded px-2 py-1.5 text-sm" placeholder="Descripción del ítem" value="${l.desc}" oninput="quoteLines[${i}].desc=this.value"/></td>
+      <td class="px-3 py-2"><input type="number" class="w-full border border-slate-200 rounded px-2 py-1.5 text-sm text-right" value="${l.qty}" min="0.001" step="0.001" oninput="quoteLines[${i}].qty=+this.value;recalcQuote()"/></td>
+      <td class="px-3 py-2"><input type="number" class="w-full border border-slate-200 rounded px-2 py-1.5 text-sm text-right" value="${l.price}" min="0" step="0.01" oninput="quoteLines[${i}].price=+this.value;recalcQuote()"/></td>
+      <td class="px-3 py-2"><input type="number" class="w-full border border-slate-200 rounded px-2 py-1.5 text-sm text-right" value="${l.disc}" min="0" max="100" step="0.01" oninput="quoteLines[${i}].disc=+this.value;recalcQuote()"/></td>
+      <td class="px-4 py-2 text-right text-xs font-semibold text-slate-700">${fmt(l.qty*l.price*(1-l.disc/100))}</td>
+      <td class="px-2 py-2 text-center"><button type="button" onclick="removeQuoteLine(${i})" class="text-slate-300 hover:text-red-400">✕</button></td>
+    </tr>`).join("");
+  recalcQuote();
+}
+function recalcQuote() {
+  const discPct = parseFloat(document.querySelector("[id=sec-quote-builder] input[type=number]:nth-of-type(1)")?.value||0);
+  const taxPct  = parseFloat(document.querySelector("[id=sec-quote-builder] input[type=number]:nth-of-type(2)")?.value||21);
+  const sub = quoteLines.reduce((s,l) => s + l.qty*l.price*(1-l.disc/100), 0);
+  const disc = sub * (discPct/100);
+  const tax  = (sub - disc) * (taxPct/100);
+  const total = sub - disc + tax;
+  const f = n => "$"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+  document.getElementById("q-subtotal").textContent = f(sub);
+  document.getElementById("q-discount").textContent = "−"+f(disc);
+  document.getElementById("q-tax").textContent = f(tax);
+  document.getElementById("q-total").textContent = f(total);
+}
+function saveQuote() {
+  alert("Cotización guardada ✓\nEn la versión productiva esto llama al endpoint tRPC quotes.create");
+  go("quotes");
+}
+
+// ─── MODAL ──────────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+function addLead() {
+  closeModal("modal-lead");
+  // Simulate adding
+  setTimeout(() => alert("Lead creado ✓\nEn producción esto llama a leads.create vía tRPC."), 100);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────
+window.addEventListener("load", () => {
+  expandCrm(true);
+  renderCharts();
+  renderLeads(); renderAccounts(); renderContacts();
+  renderOpps(); renderActivities(); renderTasks();
+  renderQuotes(); renderForecast();
+  renderProducts(); renderVendors();
+  renderWarehouses(); renderStock(); renderMovements();
+  renderSalesOrders(); renderPurchaseOrders();
+  renderFinance(); renderInvoices(); renderHolding();
+});
+window.addEventListener("resize", () => {
+  ["chart-funnel","chart-revenue"].forEach(id => {
+    const c = echarts.getInstanceByDom(document.getElementById(id));
+    if (c) c.resize();
+  });
+});
+</script>
+</body>
+</html>

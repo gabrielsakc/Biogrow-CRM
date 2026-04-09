@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"D:/CRM BIOGROW/biogrow-platform/apps/web/app/\\(dashboard\\)/[company]/\" -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\))"
+    ]
+  }
+}
