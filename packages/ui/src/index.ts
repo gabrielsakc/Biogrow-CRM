@@ -25,6 +25,8 @@ export type { SelectProps } from "./components/select";
 export { Separator } from "./components/separator";
 export { Skeleton } from "./components/skeleton";
 export { Avatar } from "./components/avatar";
+export { Checkbox } from "./components/checkbox";
+export type { CheckboxProps } from "./components/checkbox";
 
 // ─── Feedback ─────────────────────────────────────────────────────────────────
 export { EmptyState } from "./feedback/empty-state";

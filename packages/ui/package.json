@@ -17,6 +17,7 @@
     "./components/skeleton": "./src/components/skeleton.tsx",
     "./components/label": "./src/components/label.tsx",
     "./components/textarea": "./src/components/textarea.tsx",
+    "./components/checkbox": "./src/components/checkbox.tsx",
     "./feedback/empty-state": "./src/feedback/empty-state.tsx",
     "./feedback/loading-skeleton": "./src/feedback/loading-skeleton.tsx",
     "./feedback/error-boundary": "./src/feedback/error-boundary.tsx"

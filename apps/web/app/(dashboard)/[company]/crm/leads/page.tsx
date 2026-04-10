@@ -58,10 +58,12 @@ export default async function LeadsPage({ params }: { params: { company: string 
           <p className="text-sm text-gray-500 mt-0.5">{total} leads total</p>
         </div>
         {canCreate && (
-          <Button size="sm">
-            <Plus className="h-4 w-4" />
-            New Lead
-          </Button>
+          <Link href={`/${params.company}/crm/leads/new`}>
+            <Button size="sm">
+              <Plus className="h-4 w-4" />
+              New Lead
+            </Button>
+          </Link>
         )}
       </div>
 
