@@ -1,12 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Globe, Phone, Mail, User, Plus } from "lucide-react";
+import { ArrowLeft, Globe, Phone, Mail, User, Plus, Pencil } from "lucide-react";
 import { resolveCompany } from "@/lib/company";
 import { hasPermission } from "@/lib/permissions";
 import { Permissions } from "@biogrow/permissions";
 import { accountsService } from "@biogrow/crm-core";
 import { Badge } from "@biogrow/ui/components/badge";
 import { Avatar } from "@biogrow/ui/components/avatar";
+import { Button } from "@biogrow/ui/components/button";
 import { formatCurrency, formatDate } from "@biogrow/ui/lib/utils";
 
 const TYPE_META: Record<string, { label: string; variant: "default" | "primary" | "secondary" | "success" | "warning" | "danger" }> = {
@@ -35,6 +36,8 @@ export default async function AccountDetailPage({
   const account = await accountsService.getById(params.id, company.id);
   if (!account) notFound();
 
+  const canEdit = hasPermission(permissions, Permissions.CRM_ACCOUNTS_EDIT);
+
   const typeMeta = TYPE_META[account.type];
 
   return (
@@ -54,6 +57,14 @@ export default async function AccountDetailPage({
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={typeMeta?.variant ?? "default"}>{typeMeta?.label ?? account.type}</Badge>
+            {canEdit && (
+              <Link href={`/${params.company}/crm/accounts/${account.id}/edit`}>
+                <Button size="sm" variant="outline">
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

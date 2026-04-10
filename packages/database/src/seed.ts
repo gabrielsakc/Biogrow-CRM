@@ -194,6 +194,241 @@ const PERMISSIONS: Prisma.PermissionCreateInput[] = [
   { key: "admin.audit.view", module: "admin", entity: "audit", action: "view", description: "View audit log" },
 ];
 
+// ─── Test Users ────────────────────────────────────────────────────────────────
+
+const TEST_USERS: { email: string; name: string; globalRole: "SUPERADMIN" | "HOLDING_ADMIN" | "MEMBER"; companySlug: string; roleName: string }[] = [
+  // Prime Tech Blocks
+  { email: "carlos.mendez@primeblocks.com", name: "Carlos Mendez", globalRole: "MEMBER", companySlug: "prime-blocks", roleName: "company:admin" },
+  { email: "ana.torres@primeblocks.com", name: "Ana Torres", globalRole: "MEMBER", companySlug: "prime-blocks", roleName: "company:sales_manager" },
+  { email: "miguel.rodriguez@primeblocks.com", name: "Miguel Rodriguez", globalRole: "MEMBER", companySlug: "prime-blocks", roleName: "company:sales_rep" },
+  { email: "lucia.garcia@primeblocks.com", name: "Lucia Garcia", globalRole: "MEMBER", companySlug: "prime-blocks", roleName: "company:sales_rep" },
+];
+
+// ─── Accounts for Prime Tech Blocks ─────────────────────────────────────────────
+
+const PRIME_BLOCKS_ACCOUNTS: {
+  name: string;
+  type: "PROSPECT" | "CUSTOMER" | "PARTNER" | "VENDOR" | "CHURNED";
+  industry: string;
+  website?: string;
+  phone?: string;
+  email?: string;
+  annualRevenue?: number;
+  employeeCount?: number;
+  healthScore: number;
+  description?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zip?: string;
+}[] = [
+  // CUSTOMERS
+  {
+    name: "Construcciones Metropolitanas S.A.",
+    type: "CUSTOMER",
+    industry: "Construction",
+    website: "https://construccionesmetropolitanas.com",
+    phone: "+1 (305) 555-0101",
+    email: "compras@construccionesmetropolitanas.com",
+    annualRevenue: 50000000,
+    employeeCount: 320,
+    healthScore: 92,
+    description: "Empresa líder en construcción residencial y comercial en el sur de Florida. Cliente desde 2019.",
+    street: "1200 Brickell Ave, Suite 500",
+    city: "Miami",
+    state: "FL",
+    country: "USA",
+    zip: "33131",
+  },
+  {
+    name: "Edificaciones del Norte Inc.",
+    type: "CUSTOMER",
+    industry: "Construction",
+    website: "https://edificacionesdelnorte.com",
+    phone: "+1 (786) 555-0202",
+    email: "proyectos@edificacionesdelnorte.com",
+    annualRevenue: 28000000,
+    employeeCount: 150,
+    healthScore: 85,
+    description: "Especialistas en edificaciones industriales y comerciales. Compra regular de bloques modulares.",
+    street: "4500 NW 36th St",
+    city: "Miami Springs",
+    state: "FL",
+    country: "USA",
+    zip: "33166",
+  },
+  {
+    name: "Inmobiliaria Caribe Group",
+    type: "CUSTOMER",
+    industry: "Real Estate",
+    website: "https://inmobiliariacaribe.com",
+    phone: "+1 (305) 555-0303",
+    email: "desarrollo@inmobiliariacaribe.com",
+    annualRevenue: 75000000,
+    employeeCount: 200,
+    healthScore: 78,
+    description: "Desarrollador inmobiliario con proyectos en Miami, Orlando y Tampa. Cliente premium.",
+    street: "800 Douglas Rd, Suite 1200",
+    city: "Coral Gables",
+    state: "FL",
+    country: "USA",
+    zip: "33134",
+  },
+  {
+    name: "Urbanizadora Panamá S.A.",
+    type: "CUSTOMER",
+    industry: "Construction",
+    website: "https://urbanizadorapanama.com",
+    phone: "+507 200-0100",
+    email: "ventas@urbanizadorapanama.com",
+    annualRevenue: 35000000,
+    employeeCount: 180,
+    healthScore: 88,
+    description: "Empresa panameña de urbanización. Proyectos residenciales de gran escala.",
+    street: "Av. Balboa, Torre Global Bank, Piso 20",
+    city: "Panamá",
+    state: "Panamá",
+    country: "Panama",
+    zip: "0816",
+  },
+  // PROSPECTS
+  {
+    name: "Constructora del Valle LLC",
+    type: "PROSPECT",
+    industry: "Construction",
+    website: "https://constructoradelvalle.com",
+    phone: "+1 (407) 555-0404",
+    email: "info@constructoradelvalle.com",
+    annualRevenue: 15000000,
+    employeeCount: 85,
+    healthScore: 45,
+    description: "Constructora emergente en Orlando. Potencial cliente para expansión en Florida Central.",
+    street: "2500 Sand Lake Rd",
+    city: "Orlando",
+    state: "FL",
+    country: "USA",
+    zip: "32809",
+  },
+  {
+    name: "Desarrollos Habitacionales MX",
+    type: "PROSPECT",
+    industry: "Construction",
+    website: "https://desarrolloshabitacionales.mx",
+    phone: "+52 55 1234-5678",
+    email: "comercial@desarrolloshabitacionales.mx",
+    annualRevenue: 22000000,
+    employeeCount: 120,
+    healthScore: 50,
+    description: "Interesados en bloques modulares para proyectos de vivienda interestatal en México.",
+    street: "Av. Paseo de la Reforma 505, Piso 30",
+    city: "Ciudad de México",
+    state: "CDMX",
+    country: "Mexico",
+    zip: "06500",
+  },
+  {
+    name: "Eco Sustainable Homes",
+    type: "PROSPECT",
+    industry: "Construction",
+    website: "https://ecosustainablehomes.com",
+    phone: "+1 (512) 555-0505",
+    email: "sales@ecosustainablehomes.com",
+    annualRevenue: 8000000,
+    employeeCount: 45,
+    healthScore: 55,
+    description: "Empresa enfocada en construcciones sostenibles. Interés en nuestros bloques ecológicos.",
+    street: "400 W 15th St",
+    city: "Austin",
+    state: "TX",
+    country: "USA",
+    zip: "78701",
+  },
+  // PARTNERS
+  {
+    name: "Arcillas Premium Internacional",
+    type: "PARTNER",
+    industry: "Mining & Materials",
+    website: "https://arcillaspremium.com",
+    phone: "+34 91 555 0606",
+    email: "partners@arcillaspremium.com",
+    annualRevenue: 120000000,
+    employeeCount: 500,
+    healthScore: 95,
+    description: "Proveedor estratégico de arcillas de alta calidad. Alianza desde 2018.",
+    street: "Calle Serrano 100",
+    city: "Madrid",
+    state: "Madrid",
+    country: "Spain",
+    zip: "28006",
+  },
+  {
+    name: "Logística Continental Cargo",
+    type: "PARTNER",
+    industry: "Logistics",
+    website: "https://logisticacontinental.com",
+    phone: "+1 (305) 555-0707",
+    email: "operations@logisticacontinental.com",
+    annualRevenue: 45000000,
+    employeeCount: 380,
+    healthScore: 90,
+    description: "Socio logístico para distribución en toda Latinoamérica y el Caribe.",
+    street: "9500 NW 25th St",
+    city: "Doral",
+    state: "FL",
+    country: "USA",
+    zip: "33172",
+  },
+  // VENDORS (proveedores en el CRM)
+  {
+    name: "Maquinaria Industrial del Centro",
+    type: "VENDOR",
+    industry: "Manufacturing Equipment",
+    website: "https://maquinariaindustrial.com",
+    phone: "+52 55 9876-5432",
+    email: "ventas@maquinariaindustrial.com",
+    annualRevenue: 30000000,
+    employeeCount: 200,
+    healthScore: 72,
+    description: "Proveedor de maquinaria para producción de bloques modulares.",
+    street: "Av. Industrial 500",
+    city: "Monterrey",
+    state: "NL",
+    country: "Mexico",
+    zip: "64000",
+  },
+  // CHURNED (clientes perdidos)
+  {
+    name: "Construcciones Rápidas SA de CV",
+    type: "CHURNED",
+    industry: "Construction",
+    website: "https://construccionesrapidas.mx",
+    phone: "+52 81 5555-0808",
+    email: "contacto@construccionesrapidas.mx",
+    annualRevenue: 5000000,
+    employeeCount: 35,
+    healthScore: 25,
+    description: "Cliente perdido en 2023 por problemas de pago. Posible reactivación futura.",
+    street: "Av. Universidad 300",
+    city: "Monterrey",
+    state: "NL",
+    country: "Mexico",
+    zip: "64400",
+  },
+];
+
+// ─── Pipeline Stages ────────────────────────────────────────────────────────────
+
+const DEFAULT_PIPELINE_STAGES = [
+  { name: "Nuevo", order: 1, probability: 10, color: "#94a3b8" },
+  { name: "Contactado", order: 2, probability: 20, color: "#60a5fa" },
+  { name: "Calificado", order: 3, probability: 40, color: "#38bdf8" },
+  { name: "Propuesta", order: 4, probability: 60, color: "#fbbf24" },
+  { name: "Negociación", order: 5, probability: 75, color: "#fb923c" },
+  { name: "Ganado", order: 6, probability: 100, color: "#22c55e", isWon: true },
+  { name: "Perdido", order: 7, probability: 0, color: "#ef4444", isLost: true },
+];
+
 // ─── Seed ─────────────────────────────────────────────────────────────────────
 
 async function seed() {
@@ -324,11 +559,123 @@ async function seed() {
     console.log(`   ✓ ${roleName}: ${toCreate.length} permissions`);
   }
 
+  // 5. Create test users
+  console.log("\n👥 Creating test users...");
+  const userMap: Record<string, string> = {}; // email -> userId
+
+  for (const userData of TEST_USERS) {
+    const company = await db.company.findUnique({ where: { slug: userData.companySlug } });
+    const role = await db.role.findFirst({ where: { name: userData.roleName, companyId: null } });
+
+    if (!company || !role) {
+      console.log(`   ⚠️ Skipping ${userData.email} - company or role not found`);
+      continue;
+    }
+
+    const user = await db.user.upsert({
+      where: { email: userData.email },
+      update: { name: userData.name },
+      create: {
+        clerkId: `clerk_test_${userData.email.split("@")[0]}`,
+        email: userData.email,
+        name: userData.name,
+        globalRole: userData.globalRole,
+      },
+    });
+    userMap[userData.email] = user.id;
+
+    // Create membership
+    await db.userCompanyMembership.upsert({
+      where: { userId_companyId: { userId: user.id, companyId: company.id } },
+      update: { roleId: role.id },
+      create: {
+        userId: user.id,
+        companyId: company.id,
+        roleId: role.id,
+      },
+    });
+    console.log(`   ✓ ${userData.name} (${userData.email}) → ${userData.companySlug}`);
+  }
+
+  // 6. Create pipeline stages for Prime Tech Blocks
+  console.log("\n📊 Creating pipeline stages for Prime Tech Blocks...");
+  const primeBlocksCompany = await db.company.findUnique({ where: { slug: "prime-blocks" } });
+
+  if (primeBlocksCompany) {
+    for (const stage of DEFAULT_PIPELINE_STAGES) {
+      await db.pipelineStage.upsert({
+        where: { companyId_name: { companyId: primeBlocksCompany.id, name: stage.name } },
+        update: { order: stage.order, probability: stage.probability, color: stage.color },
+        create: {
+          companyId: primeBlocksCompany.id,
+          name: stage.name,
+          order: stage.order,
+          probability: stage.probability,
+          color: stage.color,
+          isWon: stage.isWon ?? false,
+          isLost: stage.isLost ?? false,
+        },
+      });
+    }
+    console.log(`   ✓ ${DEFAULT_PIPELINE_STAGES.length} pipeline stages created`);
+  }
+
+  // 7. Create accounts for Prime Tech Blocks
+  console.log("\n🏢 Creating accounts for Prime Tech Blocks...");
+
+  if (primeBlocksCompany) {
+    // Get a sales rep as default owner
+    const defaultOwner = await db.user.findFirst({
+      where: { email: "carlos.mendez@primeblocks.com" },
+    });
+
+    if (defaultOwner) {
+      for (const accountData of PRIME_BLOCKS_ACCOUNTS) {
+        // Check if account already exists
+        const existing = await db.account.findFirst({
+          where: { companyId: primeBlocksCompany.id, name: accountData.name },
+        });
+
+        if (existing) {
+          console.log(`   ⊘ ${accountData.name} (already exists)`);
+          continue;
+        }
+
+        await db.account.create({
+          data: {
+            companyId: primeBlocksCompany.id,
+            ownerId: defaultOwner.id,
+            name: accountData.name,
+            type: accountData.type,
+            industry: accountData.industry,
+            website: accountData.website,
+            phone: accountData.phone,
+            email: accountData.email,
+            annualRevenue: accountData.annualRevenue,
+            employeeCount: accountData.employeeCount,
+            healthScore: accountData.healthScore,
+            description: accountData.description,
+            street: accountData.street,
+            city: accountData.city,
+            state: accountData.state,
+            country: accountData.country,
+            zip: accountData.zip,
+          },
+        });
+        console.log(`   ✓ ${accountData.name} (${accountData.type})`);
+      }
+    } else {
+      console.log("   ⚠️ No default owner found, skipping accounts");
+    }
+  }
+
   console.log("\n✅ Seed complete!\n");
   console.log("📊 Summary:");
   console.log(`   Companies: ${COMPANIES.length}`);
   console.log(`   Permissions: ${PERMISSIONS.length}`);
   console.log(`   System roles: ${SYSTEM_ROLES.length}`);
+  console.log(`   Test users: ${TEST_USERS.length}`);
+  console.log(`   Prime Blocks accounts: ${PRIME_BLOCKS_ACCOUNTS.length}`);
 }
 
 seed()

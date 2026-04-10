@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Plus, Building2 } from "lucide-react";
+import { Plus, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import { resolveCompany } from "@/lib/company";
 import { hasPermission } from "@/lib/permissions";
 import { Permissions } from "@biogrow/permissions";
@@ -9,6 +9,7 @@ import { Button } from "@biogrow/ui/components/button";
 import { Badge } from "@biogrow/ui/components/badge";
 import { EmptyState } from "@biogrow/ui/feedback/empty-state";
 import { Avatar } from "@biogrow/ui/components/avatar";
+import { AccountsFilters } from "@/components/crm/accounts-filters";
 
 const TYPE_VARIANT: Record<string, "default" | "primary" | "secondary" | "success" | "warning" | "danger"> = {
   PROSPECT: "secondary",
@@ -35,15 +36,31 @@ function HealthBar({ score }: { score: number }) {
   );
 }
 
-export default async function AccountsPage({ params }: { params: { company: string } }) {
-
+export default async function AccountsPage({
+  params,
+  searchParams,
+}: {
+  params: { company: string };
+  searchParams: { type?: string; search?: string; page?: string };
+}) {
   const { company, permissions } = await resolveCompany(params.company);
   if (!hasPermission(permissions, Permissions.CRM_ACCOUNTS_VIEW)) {
     redirect(`/${params.company}/dashboard`);
   }
 
-  const { accounts, total } = await accountsService.list({ companyId: company.id, pageSize: 50 });
+  const page = parseInt(searchParams.page || "1", 10);
+  const pageSize = 25;
+
+  const { accounts, total } = await accountsService.list({
+    companyId: company.id,
+    type: searchParams.type as "PROSPECT" | "CUSTOMER" | "PARTNER" | "VENDOR" | "CHURNED" | undefined,
+    search: searchParams.search,
+    page,
+    pageSize,
+  });
+
   const canCreate = hasPermission(permissions, Permissions.CRM_ACCOUNTS_CREATE);
+  const totalPages = Math.ceil(total / pageSize);
 
   return (
     <div className="space-y-5">
@@ -53,12 +70,17 @@ export default async function AccountsPage({ params }: { params: { company: stri
           <p className="text-sm text-gray-500 mt-0.5">{total} accounts</p>
         </div>
         {canCreate && (
-          <Button size="sm">
-            <Plus className="h-4 w-4" />
-            New Account
-          </Button>
+          <Link href={`/${params.company}/crm/accounts/new`}>
+            <Button size="sm">
+              <Plus className="h-4 w-4" />
+              New Account
+            </Button>
+          </Link>
         )}
       </div>
+
+      {/* Filters */}
+      <AccountsFilters companySlug={params.company} />
 
       {accounts.length === 0 ? (
         <EmptyState
@@ -114,6 +136,43 @@ export default async function AccountsPage({ params }: { params: { company: stri
               ))}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <p className="text-sm text-gray-500">
+                Page {page} of {totalPages}
+              </p>
+              <div className="flex items-center gap-2">
+                {page > 1 && (
+                  <Link
+                    href={`/${params.company}/crm/accounts?${new URLSearchParams({
+                      ...(searchParams.type && { type: searchParams.type }),
+                      ...(searchParams.search && { search: searchParams.search }),
+                      page: String(page - 1),
+                    }).toString()}`}
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Link>
+                )}
+                {page < totalPages && (
+                  <Link
+                    href={`/${params.company}/crm/accounts?${new URLSearchParams({
+                      ...(searchParams.type && { type: searchParams.type }),
+                      ...(searchParams.search && { search: searchParams.search }),
+                      page: String(page + 1),
+                    }).toString()}`}
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
