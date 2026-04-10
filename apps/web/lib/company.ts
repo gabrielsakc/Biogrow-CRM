@@ -5,7 +5,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { db } from "@biogrow/database";
+import { db, hasDatabase } from "@biogrow/database";
 import { getCompanyConfig, COMPANY_CONFIGS } from "@/company-configs";
 import type { CompanySummary } from "@biogrow/shared-types";
 
@@ -29,39 +29,42 @@ function requireSession() {
 export async function resolveCompany(slug: string) {
   requireSession();
 
-  try {
-    const company = await db.company.findUnique({
-      where: { slug, isActive: true },
-      include: {
-        roles: {
-          take: 1,
-          include: {
-            permissions: { include: { permission: true } },
+  // Try database first if available
+  if (hasDatabase) {
+    try {
+      const company = await db.company.findUnique({
+        where: { slug, isActive: true },
+        include: {
+          roles: {
+            take: 1,
+            include: {
+              permissions: { include: { permission: true } },
+            },
           },
         },
-      },
-    });
+      });
 
-    if (company) {
-      const role = company.roles[0];
-      const permissions = role
-        ? role.permissions.map((rp) => rp.permission.key)
-        : [];
+      if (company) {
+        const role = company.roles[0];
+        const permissions = role
+          ? role.permissions.map((rp) => rp.permission.key)
+          : [];
 
-      const config = getCompanyConfig(slug);
+        const config = getCompanyConfig(slug);
 
-      return {
-        company,
-        role,
-        permissions,
-        config,
-      };
+        return {
+          company,
+          role,
+          permissions,
+          config,
+        };
+      }
+    } catch (error) {
+      console.error("Database error:", error);
     }
-  } catch (error) {
-    console.error("Database error:", error);
   }
 
-  // Fallback to config-based company if database fails or company not found
+  // Fallback to config-based company
   const config = getCompanyConfig(slug);
   if (config) {
     return {
@@ -127,31 +130,36 @@ export async function getUserCompanies(): Promise<CompanySummary[]> {
     if (cookieStore.get("biogrow_session")?.value !== "authenticated") return [];
   }
 
-  try {
-    const companies = await db.company.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-    });
+  // Try database first if available
+  if (hasDatabase) {
+    try {
+      const companies = await db.company.findMany({
+        where: { isActive: true },
+        orderBy: { name: "asc" },
+      });
 
-    return companies.map((c) => ({
-      id: c.id,
-      slug: c.slug,
-      name: c.name,
-      type: c.type,
-      logoUrl: c.logoUrl,
-      primaryColor: c.primaryColor,
-      isPrimary: false,
-    }));
-  } catch {
-    // Fallback to config-based companies
-    return Object.values(COMPANY_CONFIGS).map((c) => ({
-      id: c.slug,
-      slug: c.slug,
-      name: c.name,
-      type: c.type,
-      logoUrl: c.branding?.logoUrl ?? null,
-      primaryColor: c.branding?.primaryColor ?? null,
-      isPrimary: false,
-    }));
+      return companies.map((c) => ({
+        id: c.id,
+        slug: c.slug,
+        name: c.name,
+        type: c.type,
+        logoUrl: c.logoUrl,
+        primaryColor: c.primaryColor,
+        isPrimary: false,
+      }));
+    } catch {
+      // Fall through to config fallback
+    }
   }
+
+  // Fallback to config-based companies
+  return Object.values(COMPANY_CONFIGS).map((c) => ({
+    id: c.slug,
+    slug: c.slug,
+    name: c.name,
+    type: c.type,
+    logoUrl: c.branding?.logoUrl ?? null,
+    primaryColor: c.branding?.primaryColor ?? null,
+    isPrimary: false,
+  }));
 }

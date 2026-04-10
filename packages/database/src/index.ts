@@ -1,4 +1,4 @@
-export { db, PrismaClient } from "./client";
+export { db, PrismaClient, hasDatabase } from "./client";
 
 // Re-export Prisma types for convenience
 export type {
