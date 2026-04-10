@@ -24,33 +24,62 @@ function requireSession() {
 export async function resolveCompany(slug: string) {
   requireSession();
 
-  const company = await db.company.findUnique({
-    where: { slug, isActive: true },
-    include: {
-      roles: {
-        take: 1,
-        include: {
-          permissions: { include: { permission: true } },
+  try {
+    const company = await db.company.findUnique({
+      where: { slug, isActive: true },
+      include: {
+        roles: {
+          take: 1,
+          include: {
+            permissions: { include: { permission: true } },
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!company) redirect("/select-company");
+    if (!company) {
+      console.error(`Company not found: ${slug}`);
+      redirect("/select-company");
+    }
 
-  const role = company.roles[0];
-  const permissions = role
-    ? role.permissions.map((rp) => rp.permission.key)
-    : [];
+    const role = company.roles[0];
+    const permissions = role
+      ? role.permissions.map((rp) => rp.permission.key)
+      : [];
 
-  const config = getCompanyConfig(slug);
+    const config = getCompanyConfig(slug);
 
-  return {
-    company,
-    role,
-    permissions,
-    config,
-  };
+    return {
+      company,
+      role,
+      permissions,
+      config,
+    };
+  } catch (error) {
+    console.error("Error resolving company:", error);
+    // Fallback to config-based company if database fails
+    const config = getCompanyConfig(slug);
+    if (config) {
+      return {
+        company: {
+          id: config.slug,
+          name: config.name,
+          slug: config.slug,
+          type: config.type,
+          currency: config.settings?.currency ?? "USD",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          logoUrl: null,
+          primaryColor: config.branding?.primaryColor ?? null,
+        },
+        role: null,
+        permissions: [],
+        config,
+      };
+    }
+    redirect("/select-company");
+  }
 }
 
 /**
