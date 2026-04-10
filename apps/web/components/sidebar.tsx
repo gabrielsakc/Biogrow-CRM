@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@biogrow/ui/lib/utils";
 import {
-  LayoutDashboard, Users, Building2, ShoppingCart,
+  LayoutDashboard, Users, ShoppingCart,
   Package, DollarSign, Settings, Building, ChevronDown,
-  ChevronRight, BarChart3, Globe, Truck, Calculator,
+  ChevronRight, BarChart3, Globe, Calculator,
 } from "lucide-react";
 
 interface NavItem {
@@ -19,14 +19,14 @@ interface NavItem {
 
 function buildNav(slug: string): NavItem[] {
   const b = `/${slug}`;
-  const baseNav: NavItem[] = [
+  return [
     { name: "Dashboard", href: `${b}/dashboard`, icon: LayoutDashboard },
     {
       name: "CRM",
       href: `${b}/crm`,
       icon: Users,
       children: [
-        { name: "CRM Dashboard", href: `${b}/crm/dashboard` },
+        { name: "Dashboard", href: `${b}/crm/dashboard` },
         { name: "Leads", href: `${b}/crm/leads` },
         { name: "Accounts", href: `${b}/crm/accounts` },
         { name: "Contacts", href: `${b}/crm/contacts` },
@@ -55,7 +55,7 @@ function buildNav(slug: string): NavItem[] {
         { name: "Products", href: `${b}/inventory/products` },
         { name: "Vendors", href: `${b}/inventory/vendors` },
         { name: "Warehouses", href: `${b}/inventory/warehouses` },
-        { name: "Current Stock", href: `${b}/inventory/stock` },
+        { name: "Stock", href: `${b}/inventory/stock` },
         { name: "Movements", href: `${b}/inventory/movements` },
       ],
     },
@@ -72,42 +72,33 @@ function buildNav(slug: string): NavItem[] {
     { name: "Reports", href: `${b}/reports`, icon: BarChart3 },
     { name: "Settings", href: `${b}/settings`, icon: Settings },
   ];
-
-  // Add EPS Calculator for Prime Tech Blocks
-  if (slug === "prime-blocks") {
-    baseNav.splice(5, 0, {
-      name: "EPS Calculator",
-      href: `${b}/eps-calculator`,
-      icon: Calculator
-    });
-  }
-
-  return baseNav;
 }
 
 export function Sidebar({ companySlug }: { companySlug: string }) {
   const pathname = usePathname();
-  const effectiveSlug = companySlug || pathname.split("/").filter(Boolean)[0] || "";
-  const nav = buildNav(effectiveSlug);
-  const [mounted, setMounted] = useState(false);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const slug = companySlug || "prime-blocks";
+  const nav = buildNav(slug);
 
-  // Set initial expanded state after mount to avoid hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-    setExpanded({
-      CRM: pathname.includes("/crm"),
-      Sales: pathname.includes("/sales"),
-      Inventory: pathname.includes("/inventory"),
-      Finance: pathname.includes("/finance"),
-    });
-  }, [pathname]);
+  // Start with all sections expanded
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({
+    CRM: true,
+    Sales: true,
+    Inventory: true,
+    Finance: true,
+  });
+
+  const toggleExpand = (name: string) => {
+    setExpanded((prev) => ({
+      ...prev,
+      [name]: !prev[name],
+    }));
+  };
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
       {/* Logo */}
       <div className="h-16 flex items-center px-5 border-b border-gray-200">
-        <Link href={`/${effectiveSlug}/dashboard`} className="flex items-center gap-2.5">
+        <Link href={`/${slug}/dashboard`} className="flex items-center gap-2.5">
           <div className="h-7 w-7 rounded-lg bg-emerald-600 flex items-center justify-center">
             <Building className="h-4 w-4 text-white" />
           </div>
@@ -116,89 +107,83 @@ export function Sidebar({ companySlug }: { companySlug: string }) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
-        {nav.map((item) => {
-          const isActive = mounted && (
-            pathname === item.href ||
-            (item.href !== `/${effectiveSlug}/dashboard` && pathname.startsWith(item.href))
-          );
-          const isOpen = expanded[item.name] ?? false;
+      <nav className="flex-1 overflow-y-auto px-3 py-3">
+        <ul className="space-y-1">
+          {nav.map((item) => {
+            const isActive = pathname.startsWith(item.href);
+            const isExpanded = expanded[item.name] ?? false;
 
-          if (item.children) {
+            if (item.children) {
+              return (
+                <li key={item.name}>
+                  <button
+                    onClick={() => toggleExpand(item.name)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span className="flex-1 text-left">{item.name}</span>
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </button>
+                  {isExpanded && (
+                    <ul className="ml-7 mt-1 border-l-2 border-gray-100 pl-3 space-y-1">
+                      {item.children.map((child) => (
+                        <li key={child.href}>
+                          <Link
+                            href={child.href}
+                            className={cn(
+                              "block px-3 py-1.5 rounded text-sm",
+                              pathname === child.href
+                                ? "text-emerald-700 font-medium bg-emerald-50"
+                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                            )}
+                          >
+                            {child.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            }
+
             return (
-              <div key={item.name}>
-                <button
-                  type="button"
-                  onClick={() => setExpanded((p) => ({ ...p, [item.name]: !p[item.name] }))}
+              <li key={item.name}>
+                <Link
+                  href={item.href}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
+                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                     isActive
                       ? "bg-emerald-50 text-emerald-700"
                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                   )}
                 >
-                  <item.icon className="h-4 w-4 shrink-0" />
-                  <span className="flex-1 text-left">{item.name}</span>
-                  {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-                </button>
-                {isOpen && (
-                  <div className="ml-7 mt-0.5 border-l border-gray-100 pl-3 space-y-0.5">
-                    {item.children.map((child) => {
-                      const childActive = mounted && (pathname === child.href || pathname.startsWith(child.href + "/"));
-                      return (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          className={cn(
-                            "block px-3 py-1.5 rounded-md text-sm transition-colors cursor-pointer",
-                            childActive
-                              ? "text-emerald-700 font-medium bg-emerald-50"
-                              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                          )}
-                        >
-                          {child.name}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+                  <item.icon className="h-4 w-4" />
+                  {item.name}
+                </Link>
+              </li>
             );
-          }
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
-                isActive
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              )}
-            >
-              <item.icon className="h-4 w-4 shrink-0" />
-              {item.name}
-            </Link>
-          );
-        })}
+          })}
+        </ul>
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-gray-200 space-y-0.5">
+      <div className="p-3 border-t border-gray-200">
         <Link
           href="/holding"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-100"
         >
           <Globe className="h-4 w-4" />
           Holding View
-        </Link>
-        <Link
-          href="/select-company"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer"
-        >
-          <Building2 className="h-4 w-4" />
-          Switch Company
         </Link>
       </div>
     </aside>
