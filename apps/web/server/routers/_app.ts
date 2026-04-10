@@ -14,6 +14,7 @@ import { inventoryRouter } from "./erp/inventory";
 import { salesOrdersRouter } from "./erp/sales-orders";
 import { purchaseOrdersRouter } from "./erp/purchase-orders";
 import { financeRouter } from "./erp/finance";
+import { investmentsRouter } from "./erp/investments";
 
 export const appRouter = router({
   // CRM
@@ -33,6 +34,7 @@ export const appRouter = router({
   salesOrders: salesOrdersRouter,
   purchaseOrders: purchaseOrdersRouter,
   finance: financeRouter,
+  investments: investmentsRouter,
 });
 
 export type AppRouter = typeof appRouter;

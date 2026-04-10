@@ -57,6 +57,7 @@ model Company {
   arLedger           ARLedger[]
   apLedger           APLedger[]
   cashFlowEntries    CashFlowEntry[]
+  investments        Investment[]
 
   @@map("companies")
 }
@@ -96,6 +97,7 @@ model User {
   purchaseOrders PurchaseOrder[]
   inventoryMovements InventoryMovement[]
   invoices      Invoice[]
+  investments   Investment[]
 
   @@map("users")
 }
@@ -1091,4 +1093,102 @@ enum CashFlowType {
   INFLOW
   OUTFLOW
   @@map("cash_flow_type")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ERP — INVESTMENTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Investment {
+  id          String          @id @default(cuid())
+  companyId   String          @map("company_id")
+  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ownerId     String          @map("owner_id")
+  owner       User            @relation(fields: [ownerId], references: [id])
+
+  name        String
+  type        InvestmentType
+  description String?
+
+  amount      Float           // Amount invested
+  currency    String          @default("USD")
+  investedAt  DateTime        @map("invested_at")
+
+  expectedReturn    Float?    @map("expected_return")
+  actualReturn      Float?    @map("actual_return")
+  expectedRoiPct     Float?    @map("expected_roi_pct")
+  actualRoiPct       Float?    @map("actual_roi_pct")
+
+  startDate   DateTime?       @map("start_date")
+  endDate     DateTime?       @map("end_date")
+  maturityDate DateTime?      @map("maturity_date")
+
+  status      InvestmentStatus @default(PLANNED)
+  riskLevel   InvestmentRisk   @default(MEDIUM)
+
+  notes       String?
+
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  transactions InvestmentTransaction[]
+
+  @@index([companyId, status])
+  @@index([companyId, type])
+  @@index([companyId, investedAt])
+  @@map("investments")
+}
+
+model InvestmentTransaction {
+  id            String    @id @default(cuid())
+  investmentId  String    @map("investment_id")
+  investment    Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+
+  type          InvestmentTransactionType
+  amount        Float
+  currency      String    @default("USD")
+  description   String?
+  transactionDate DateTime @map("transaction_date")
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([investmentId, transactionDate])
+  @@map("investment_transactions")
+}
+
+enum InvestmentType {
+  EQUIPMENT          // Machinery, vehicles, tools
+  PROPERTY           // Real estate, land
+  TECHNOLOGY         // Software, IT infrastructure
+  RESEARCH          // R&D projects
+  INVENTORY_EXPANSION // Expanding stock/capacity
+  MARKETING          // Marketing campaigns
+  TRAINING          // Employee development
+  OTHER             // Miscellaneous
+  @@map("investment_type")
+}
+
+enum InvestmentStatus {
+  PLANNED            // Planned but not started
+  ACTIVE             // Currently active
+  ON_HOLD           // Temporarily paused
+  COMPLETED         // Finished
+  CANCELLED         // Cancelled
+  WRITTEN_OFF       // Written off as loss
+  @@map("investment_status")
+}
+
+enum InvestmentRisk {
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+  @@map("investment_risk")
+}
+
+enum InvestmentTransactionType {
+  DISBURSEMENT      // Money paid out
+  RETURN            // Return received
+  ADJUSTMENT        // Value adjustment
+  @@map("investment_transaction_type")
 }

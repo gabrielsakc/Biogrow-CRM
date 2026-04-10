@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { FileText, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { FileText, TrendingUp, TrendingDown, DollarSign, PiggyBank } from "lucide-react";
 import { resolveCompany } from "@/lib/company";
 import { hasPermission } from "@/lib/permissions";
 import { Permissions } from "@biogrow/permissions";
@@ -175,6 +175,17 @@ export default async function FinanceDashboardPage({ params }: { params: { compa
             <div>
               <p className="text-sm font-semibold text-gray-800">Accounts Receivable</p>
               <p className="text-xs text-gray-400">Aging and collections tracking</p>
+            </div>
+          </div>
+        </Link>
+        <Link href={`/${params.company}/finance/investments`} className="rounded-xl border border-gray-200 bg-white p-4 hover:border-emerald-300 transition-colors group">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-gray-50 group-hover:bg-emerald-50 flex items-center justify-center transition-colors">
+              <PiggyBank className="h-4 w-4 text-gray-500 group-hover:text-emerald-600 transition-colors" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Investments</p>
+              <p className="text-xs text-gray-400">Track company investments and ROI</p>
             </div>
           </div>
         </Link>

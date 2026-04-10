@@ -111,6 +111,13 @@ export const Permissions = {
   ERP_TREASURY_VIEW: "erp.treasury.view",
   ERP_TREASURY_MANAGE: "erp.treasury.manage",
 
+  // ─── ERP — Investments ────────────────────────────────────────────────────
+  ERP_INVESTMENTS_VIEW: "erp.investments.view",
+  ERP_INVESTMENTS_CREATE: "erp.investments.create",
+  ERP_INVESTMENTS_EDIT: "erp.investments.edit",
+  ERP_INVESTMENTS_DELETE: "erp.investments.delete",
+  ERP_INVESTMENTS_APPROVE: "erp.investments.approve",
+
   // ─── Holding ─────────────────────────────────────────────────────────────
   HOLDING_DASHBOARD_VIEW: "holding.dashboard.view",
   HOLDING_REPORTS_VIEW: "holding.reports.view",
