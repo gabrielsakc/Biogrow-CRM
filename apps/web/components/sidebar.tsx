@@ -7,7 +7,7 @@ import { cn } from "@biogrow/ui/lib/utils";
 import {
   LayoutDashboard, Users, Building2, ShoppingCart,
   Package, DollarSign, Settings, Building, ChevronDown,
-  ChevronRight, BarChart3, Globe, Truck,
+  ChevronRight, BarChart3, Globe, Truck, Calculator,
 } from "lucide-react";
 
 interface NavItem {
@@ -19,7 +19,7 @@ interface NavItem {
 
 function buildNav(slug: string): NavItem[] {
   const b = `/${slug}`;
-  return [
+  const baseNav: NavItem[] = [
     { name: "Dashboard", href: `${b}/dashboard`, icon: LayoutDashboard },
     {
       name: "CRM",
@@ -72,6 +72,17 @@ function buildNav(slug: string): NavItem[] {
     { name: "Reports", href: `${b}/reports`, icon: BarChart3 },
     { name: "Settings", href: `${b}/settings`, icon: Settings },
   ];
+
+  // Add EPS Calculator for Prime Tech Blocks
+  if (slug === "prime-blocks") {
+    baseNav.splice(5, 0, {
+      name: "EPS Calculator",
+      href: `${b}/eps-calculator`,
+      icon: Calculator
+    });
+  }
+
+  return baseNav;
 }
 
 export function Sidebar({ companySlug }: { companySlug: string }) {
