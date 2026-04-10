@@ -12,6 +12,11 @@
     "./components/avatar": "./src/components/avatar.tsx",
     "./components/card": "./src/components/card.tsx",
     "./components/input": "./src/components/input.tsx",
+    "./components/select": "./src/components/select.tsx",
+    "./components/separator": "./src/components/separator.tsx",
+    "./components/skeleton": "./src/components/skeleton.tsx",
+    "./components/label": "./src/components/label.tsx",
+    "./components/textarea": "./src/components/textarea.tsx",
     "./feedback/empty-state": "./src/feedback/empty-state.tsx",
     "./feedback/loading-skeleton": "./src/feedback/loading-skeleton.tsx",
     "./feedback/error-boundary": "./src/feedback/error-boundary.tsx"
