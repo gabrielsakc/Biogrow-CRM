@@ -89,18 +89,18 @@ export function Sidebar({ companySlug }: { companySlug: string }) {
   const pathname = usePathname();
   const effectiveSlug = companySlug || pathname.split("/").filter(Boolean)[0] || "";
   const nav = buildNav(effectiveSlug);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [mounted, setMounted] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   // Set initial expanded state after mount to avoid hydration mismatch
   useEffect(() => {
+    setMounted(true);
     setExpanded({
       CRM: pathname.includes("/crm"),
       Sales: pathname.includes("/sales"),
       Inventory: pathname.includes("/inventory"),
       Finance: pathname.includes("/finance"),
     });
-    setMounted(true);
   }, [pathname]);
 
   return (
@@ -118,9 +118,10 @@ export function Sidebar({ companySlug }: { companySlug: string }) {
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
         {nav.map((item) => {
-          const isActive =
+          const isActive = mounted && (
             pathname === item.href ||
-            (item.href !== `/${effectiveSlug}/dashboard` && pathname.startsWith(item.href));
+            (item.href !== `/${effectiveSlug}/dashboard` && pathname.startsWith(item.href))
+          );
           const isOpen = expanded[item.name] ?? false;
 
           if (item.children) {
@@ -130,7 +131,7 @@ export function Sidebar({ companySlug }: { companySlug: string }) {
                   type="button"
                   onClick={() => setExpanded((p) => ({ ...p, [item.name]: !p[item.name] }))}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                     isActive
                       ? "bg-emerald-50 text-emerald-700"
                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -143,13 +144,13 @@ export function Sidebar({ companySlug }: { companySlug: string }) {
                 {isOpen && (
                   <div className="ml-7 mt-0.5 border-l border-gray-100 pl-3 space-y-0.5">
                     {item.children.map((child) => {
-                      const childActive = pathname === child.href || pathname.startsWith(child.href + "/");
+                      const childActive = mounted && (pathname === child.href || pathname.startsWith(child.href + "/"));
                       return (
                         <Link
                           key={child.href}
                           href={child.href}
                           className={cn(
-                            "block px-3 py-1.5 rounded-md text-sm transition-colors",
+                            "block px-3 py-1.5 rounded-md text-sm transition-colors cursor-pointer",
                             childActive
                               ? "text-emerald-700 font-medium bg-emerald-50"
                               : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
@@ -170,7 +171,7 @@ export function Sidebar({ companySlug }: { companySlug: string }) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                 isActive
                   ? "bg-emerald-50 text-emerald-700"
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -187,14 +188,14 @@ export function Sidebar({ companySlug }: { companySlug: string }) {
       <div className="p-3 border-t border-gray-200 space-y-0.5">
         <Link
           href="/holding"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer"
         >
           <Globe className="h-4 w-4" />
           Holding View
         </Link>
         <Link
           href="/select-company"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer"
         >
           <Building2 className="h-4 w-4" />
           Switch Company

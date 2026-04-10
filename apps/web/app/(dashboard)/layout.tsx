@@ -3,13 +3,13 @@ import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 
-interface DashboardLayoutProps {
+export default async function DashboardLayout({
+  children,
+  params,
+}: {
   children: React.ReactNode;
-  params: Promise<{ company: string }>;
-}
-
-export default async function DashboardLayout({ children, params }: DashboardLayoutProps) {
-  const { company } = await params;
+  params: { company: string };
+}) {
   const cookieStore = cookies();
   const session = cookieStore.get("biogrow_session")?.value;
 
@@ -21,7 +21,7 @@ export default async function DashboardLayout({ children, params }: DashboardLay
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Sidebar companySlug={company} />
+      <Sidebar companySlug={params.company} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-y-auto p-6">
