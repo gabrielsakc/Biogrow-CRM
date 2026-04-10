@@ -4,9 +4,9 @@ import type { NextRequest } from "next/server";
 // Public paths that don't require authentication
 const PUBLIC_PATHS = ["/sign-in", "/sign-up", "/api"];
 
-// Internal use - authentication bypassed
-// Set to false to require authentication
-const REQUIRE_AUTH = false;
+// Set to false to bypass authentication for internal use
+// Set to true to require authentication
+const REQUIRE_AUTH = false; // Authentication disabled for demo
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

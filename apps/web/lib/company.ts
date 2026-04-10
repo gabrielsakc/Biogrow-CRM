@@ -9,7 +9,8 @@ import { db, hasDatabase } from "@biogrow/database";
 import { getCompanyConfig, COMPANY_CONFIGS } from "@/company-configs";
 import type { CompanySummary } from "@biogrow/shared-types";
 
-// Internal use - authentication bypassed
+// Set to false to bypass authentication for demo/internal use
+// Set to true to require authentication
 const REQUIRE_AUTH = false;
 
 function requireSession() {
