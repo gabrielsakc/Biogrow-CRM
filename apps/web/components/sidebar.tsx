@@ -1,104 +1,70 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@biogrow/ui/lib/utils";
 import {
   LayoutDashboard, Users, ShoppingCart,
   Package, DollarSign, Settings, Building, ChevronDown,
-  ChevronRight, BarChart3, Globe, Calculator,
+  BarChart3, Globe,
 } from "lucide-react";
 
-interface NavItem {
-  name: string;
-  href: string;
-  icon: React.ElementType;
-  children?: { name: string; href: string }[];
+interface SidebarProps {
+  companySlug: string;
 }
 
-function buildNav(slug: string): NavItem[] {
-  const b = `/${slug}`;
-  return [
-    { name: "Dashboard", href: `${b}/dashboard`, icon: LayoutDashboard },
-    {
-      name: "CRM",
-      href: `${b}/crm`,
-      icon: Users,
-      children: [
-        { name: "Dashboard", href: `${b}/crm/dashboard` },
-        { name: "Leads", href: `${b}/crm/leads` },
-        { name: "Accounts", href: `${b}/crm/accounts` },
-        { name: "Contacts", href: `${b}/crm/contacts` },
-        { name: "Pipeline", href: `${b}/crm/pipeline` },
-        { name: "Opportunities", href: `${b}/crm/opportunities` },
-        { name: "Activities", href: `${b}/crm/activities` },
-        { name: "Tasks", href: `${b}/crm/tasks` },
-        { name: "Quotes", href: `${b}/crm/quotes` },
-        { name: "Forecast", href: `${b}/crm/forecast` },
-      ],
-    },
-    {
-      name: "Sales",
-      href: `${b}/sales`,
-      icon: ShoppingCart,
-      children: [
-        { name: "Sales Orders", href: `${b}/sales` },
-        { name: "Purchase Orders", href: `${b}/sales/purchasing` },
-      ],
-    },
-    {
-      name: "Inventory",
-      href: `${b}/inventory`,
-      icon: Package,
-      children: [
-        { name: "Products", href: `${b}/inventory/products` },
-        { name: "Vendors", href: `${b}/inventory/vendors` },
-        { name: "Warehouses", href: `${b}/inventory/warehouses` },
-        { name: "Stock", href: `${b}/inventory/stock` },
-        { name: "Movements", href: `${b}/inventory/movements` },
-      ],
-    },
-    {
-      name: "Finance",
-      href: `${b}/finance`,
-      icon: DollarSign,
-      children: [
-        { name: "Overview", href: `${b}/finance` },
-        { name: "Invoices", href: `${b}/finance/invoices` },
-        { name: "Receivables", href: `${b}/finance/receivables` },
-      ],
-    },
-    { name: "Reports", href: `${b}/reports`, icon: BarChart3 },
-    { name: "Settings", href: `${b}/settings`, icon: Settings },
-  ];
-}
-
-export function Sidebar({ companySlug }: { companySlug: string }) {
+export function Sidebar({ companySlug }: SidebarProps) {
   const pathname = usePathname();
   const slug = companySlug || "prime-blocks";
-  const nav = buildNav(slug);
+  const base = `/${slug}`;
 
-  // Start with all sections expanded
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({
-    CRM: true,
-    Sales: true,
-    Inventory: true,
-    Finance: true,
-  });
+  const sections = [
+    { name: "Dashboard", href: `${base}/dashboard`, icon: LayoutDashboard },
+  ];
 
-  const toggleExpand = (name: string) => {
-    setExpanded((prev) => ({
-      ...prev,
-      [name]: !prev[name],
-    }));
-  };
+  const crmItems = [
+    { name: "Dashboard", href: `${base}/crm/dashboard` },
+    { name: "Leads", href: `${base}/crm/leads` },
+    { name: "Accounts", href: `${base}/crm/accounts` },
+    { name: "Contacts", href: `${base}/crm/contacts` },
+    { name: "Pipeline", href: `${base}/crm/pipeline` },
+    { name: "Opportunities", href: `${base}/crm/opportunities` },
+    { name: "Activities", href: `${base}/crm/activities` },
+    { name: "Tasks", href: `${base}/crm/tasks` },
+    { name: "Quotes", href: `${base}/crm/quotes` },
+    { name: "Forecast", href: `${base}/crm/forecast` },
+  ];
+
+  const salesItems = [
+    { name: "Sales Orders", href: `${base}/sales` },
+    { name: "Purchase Orders", href: `${base}/sales/purchasing` },
+  ];
+
+  const inventoryItems = [
+    { name: "Products", href: `${base}/inventory/products` },
+    { name: "Vendors", href: `${base}/inventory/vendors` },
+    { name: "Warehouses", href: `${base}/inventory/warehouses` },
+    { name: "Stock", href: `${base}/inventory/stock` },
+    { name: "Movements", href: `${base}/inventory/movements` },
+  ];
+
+  const financeItems = [
+    { name: "Overview", href: `${base}/finance` },
+    { name: "Invoices", href: `${base}/finance/invoices` },
+    { name: "Receivables", href: `${base}/finance/receivables` },
+  ];
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const isCrmActive = pathname.includes("/crm");
+  const isSalesActive = pathname.includes("/sales");
+  const isInventoryActive = pathname.includes("/inventory");
+  const isFinanceActive = pathname.includes("/finance");
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
       {/* Logo */}
       <div className="h-16 flex items-center px-5 border-b border-gray-200">
-        <Link href={`/${slug}/dashboard`} className="flex items-center gap-2.5">
+        <Link href={`${base}/dashboard`} className="flex items-center gap-2.5">
           <div className="h-7 w-7 rounded-lg bg-emerald-600 flex items-center justify-center">
             <Building className="h-4 w-4 text-white" />
           </div>
@@ -106,73 +72,160 @@ export function Sidebar({ companySlug }: { companySlug: string }) {
         </Link>
       </div>
 
-      {/* Nav */}
+      {/* Navigation - Always expanded */}
       <nav className="flex-1 overflow-y-auto px-3 py-3">
         <ul className="space-y-1">
-          {nav.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            const isExpanded = expanded[item.name] ?? false;
+          {/* Dashboard */}
+          <li>
+            <Link
+              href={`${base}/dashboard`}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                isActive(`${base}/dashboard`) && !pathname.includes("/crm") && !pathname.includes("/sales")
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              )}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </Link>
+          </li>
 
-            if (item.children) {
-              return (
-                <li key={item.name}>
-                  <button
-                    onClick={() => toggleExpand(item.name)}
+          {/* CRM */}
+          <li>
+            <div className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700">
+              <Users className="h-4 w-4" />
+              <span>CRM</span>
+              <ChevronDown className="h-4 w-4 ml-auto" />
+            </div>
+            <ul className="ml-7 border-l-2 border-gray-100 pl-3 space-y-1">
+              {crmItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
                     className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      "block px-3 py-1.5 rounded text-sm",
+                      isActive(item.href)
+                        ? "text-emerald-700 font-medium bg-emerald-50"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                     )}
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </button>
-                  {isExpanded && (
-                    <ul className="ml-7 mt-1 border-l-2 border-gray-100 pl-3 space-y-1">
-                      {item.children.map((child) => (
-                        <li key={child.href}>
-                          <Link
-                            href={child.href}
-                            className={cn(
-                              "block px-3 py-1.5 rounded text-sm",
-                              pathname === child.href
-                                ? "text-emerald-700 font-medium bg-emerald-50"
-                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                            )}
-                          >
-                            {child.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                    {item.name}
+                  </Link>
                 </li>
-              );
-            }
+              ))}
+            </ul>
+          </li>
 
-            return (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  )}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.name}
-                </Link>
-              </li>
-            );
-          })}
+          {/* Sales */}
+          <li>
+            <div className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700">
+              <ShoppingCart className="h-4 w-4" />
+              <span>Sales</span>
+              <ChevronDown className="h-4 w-4 ml-auto" />
+            </div>
+            <ul className="ml-7 border-l-2 border-gray-100 pl-3 space-y-1">
+              {salesItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "block px-3 py-1.5 rounded text-sm",
+                      isActive(item.href)
+                        ? "text-emerald-700 font-medium bg-emerald-50"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </li>
+
+          {/* Inventory */}
+          <li>
+            <div className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700">
+              <Package className="h-4 w-4" />
+              <span>Inventory</span>
+              <ChevronDown className="h-4 w-4 ml-auto" />
+            </div>
+            <ul className="ml-7 border-l-2 border-gray-100 pl-3 space-y-1">
+              {inventoryItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "block px-3 py-1.5 rounded text-sm",
+                      isActive(item.href)
+                        ? "text-emerald-700 font-medium bg-emerald-50"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </li>
+
+          {/* Finance */}
+          <li>
+            <div className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700">
+              <DollarSign className="h-4 w-4" />
+              <span>Finance</span>
+              <ChevronDown className="h-4 w-4 ml-auto" />
+            </div>
+            <ul className="ml-7 border-l-2 border-gray-100 pl-3 space-y-1">
+              {financeItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "block px-3 py-1.5 rounded text-sm",
+                      isActive(item.href)
+                        ? "text-emerald-700 font-medium bg-emerald-50"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </li>
+
+          {/* Reports */}
+          <li>
+            <Link
+              href={`${base}/reports`}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                isActive(`${base}/reports`)
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              )}
+            >
+              <BarChart3 className="h-4 w-4" />
+              Reports
+            </Link>
+          </li>
+
+          {/* Settings */}
+          <li>
+            <Link
+              href={`${base}/settings`}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                isActive(`${base}/settings`)
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              )}
+            >
+              <Settings className="h-4 w-4" />
+              Settings
+            </Link>
+          </li>
         </ul>
       </nav>
 
