@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@biogrow/ui/lib/utils";
@@ -89,12 +89,19 @@ export function Sidebar({ companySlug }: { companySlug: string }) {
   const pathname = usePathname();
   const effectiveSlug = companySlug || pathname.split("/").filter(Boolean)[0] || "";
   const nav = buildNav(effectiveSlug);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({
-    CRM: pathname.includes("/crm"),
-    Sales: pathname.includes("/sales"),
-    Inventory: pathname.includes("/inventory"),
-    Finance: pathname.includes("/finance"),
-  });
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [mounted, setMounted] = useState(false);
+
+  // Set initial expanded state after mount to avoid hydration mismatch
+  useEffect(() => {
+    setExpanded({
+      CRM: pathname.includes("/crm"),
+      Sales: pathname.includes("/sales"),
+      Inventory: pathname.includes("/inventory"),
+      Finance: pathname.includes("/finance"),
+    });
+    setMounted(true);
+  }, [pathname]);
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
