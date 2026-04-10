@@ -1,11 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Target, FileText, User } from "lucide-react";
+import { ArrowLeft, Target, FileText, User, Edit } from "lucide-react";
 import { resolveCompany } from "@/lib/company";
 import { hasPermission } from "@/lib/permissions";
 import { Permissions } from "@biogrow/permissions";
 import { opportunitiesService } from "@biogrow/crm-core";
 import { Badge } from "@biogrow/ui/components/badge";
+import { Button } from "@biogrow/ui/components/button";
 import { Avatar } from "@biogrow/ui/components/avatar";
 import { formatCurrency, formatDate } from "@biogrow/ui/lib/utils";
 
@@ -37,6 +38,8 @@ export default async function OpportunityDetailPage({
     redirect(`/${params.company}/dashboard`);
   }
 
+  const canEdit = hasPermission(permissions, Permissions.CRM_OPPORTUNITIES_EDIT);
+
   const opp = await opportunitiesService.getById(params.id, company.id);
   if (!opp) notFound();
 
@@ -61,6 +64,14 @@ export default async function OpportunityDetailPage({
           <div className="flex items-center gap-2">
             <span className="text-xl font-bold text-emerald-600">{formatCurrency(opp.amount, opp.currency)}</span>
             <Badge variant={forecastMeta?.variant ?? "default"}>{forecastMeta?.label ?? (opp as any).forecastCategory}</Badge>
+            {canEdit && (
+              <Link href={`/${params.company}/crm/opportunities/${params.id}/edit`}>
+                <Button variant="outline" size="sm">
+                  <Edit className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

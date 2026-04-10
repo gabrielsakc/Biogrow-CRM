@@ -57,10 +57,12 @@ export default async function TasksPage({ params }: { params: { company: string 
           <p className="text-sm text-gray-500 mt-0.5">{total} tasks total</p>
         </div>
         {canCreate && (
-          <Button size="sm">
-            <Plus className="h-4 w-4" />
-            New Task
-          </Button>
+          <Link href={`/${params.company}/crm/tasks/new`}>
+            <Button size="sm">
+              <Plus className="h-4 w-4" />
+              New Task
+            </Button>
+          </Link>
         )}
       </div>
 
@@ -69,7 +71,11 @@ export default async function TasksPage({ params }: { params: { company: string 
           icon={<CheckSquare className="h-7 w-7" />}
           title="No tasks yet"
           description="Create tasks to track pending actions on leads, accounts and opportunities."
-          action={canCreate ? <Button size="sm"><Plus className="h-4 w-4" />Create task</Button> : undefined}
+          action={canCreate ? (
+            <Link href={`/${params.company}/crm/tasks/new`}>
+              <Button size="sm"><Plus className="h-4 w-4" />Create task</Button>
+            </Link>
+          ) : undefined}
         />
       ) : (
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -91,7 +97,12 @@ export default async function TasksPage({ params }: { params: { company: string 
                 return (
                   <tr key={task.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
-                      <span className="font-medium text-gray-900">{task.title}</span>
+                      <Link
+                        href={`/${params.company}/crm/tasks/${task.id}`}
+                        className="font-medium text-gray-900 hover:text-emerald-600 transition-colors"
+                      >
+                        {task.title}
+                      </Link>
                       {task.description && (
                         <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{task.description}</p>
                       )}

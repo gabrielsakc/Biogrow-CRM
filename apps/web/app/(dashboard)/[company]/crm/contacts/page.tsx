@@ -28,7 +28,9 @@ export default async function ContactsPage({ params }: { params: { company: stri
           <p className="text-sm text-gray-500 mt-0.5">{total} contacts</p>
         </div>
         {canCreate && (
-          <Button size="sm"><Plus className="h-4 w-4" />New Contact</Button>
+          <Link href={`/${params.company}/crm/contacts/new`}>
+            <Button size="sm"><Plus className="h-4 w-4" />New Contact</Button>
+          </Link>
         )}
       </div>
 
@@ -37,7 +39,11 @@ export default async function ContactsPage({ params }: { params: { company: stri
           icon={<UserCircle className="h-7 w-7" />}
           title="No contacts yet"
           description="Contacts are the people associated with your customer accounts."
-          action={canCreate ? <Button size="sm"><Plus className="h-4 w-4" />Create contact</Button> : undefined}
+          action={canCreate ? (
+            <Link href={`/${params.company}/crm/contacts/new`}>
+              <Button size="sm"><Plus className="h-4 w-4" />Create contact</Button>
+            </Link>
+          ) : undefined}
         />
       ) : (
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">

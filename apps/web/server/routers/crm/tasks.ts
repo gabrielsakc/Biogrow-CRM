@@ -5,6 +5,15 @@ import { tasksService } from "@biogrow/crm-core";
 import { Permissions, can } from "@biogrow/permissions";
 
 export const tasksRouter = router({
+  getById: companyProcedure
+    .input(z.object({ companyId: z.string(), id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (!can(ctx.resolvedUser, Permissions.CRM_TASKS_VIEW, input.companyId).allowed) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      return tasksService.getById(input.id, input.companyId);
+    }),
+
   list: companyProcedure
     .input(z.object({
       companyId: z.string(),

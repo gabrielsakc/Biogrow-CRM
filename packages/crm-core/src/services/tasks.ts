@@ -2,6 +2,19 @@ import { db } from "@biogrow/database";
 import type { TaskListParams, CreateTaskParams } from "../types";
 
 export const tasksService = {
+  async getById(id: string, companyId: string) {
+    return db.task.findFirst({
+      where: { id, companyId },
+      include: {
+        owner: { select: { id: true, name: true, avatarUrl: true } },
+        assignee: { select: { id: true, name: true, avatarUrl: true } },
+        lead: { select: { id: true, firstName: true, lastName: true } },
+        account: { select: { id: true, name: true } },
+        opportunity: { select: { id: true, name: true } },
+      },
+    });
+  },
+
   async list(params: TaskListParams) {
     const { companyId, ownerId, status, leadId, accountId, contactId, opportunityId, page = 1, pageSize = 25 } = params;
     const skip = (page - 1) * pageSize;

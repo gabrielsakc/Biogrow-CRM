@@ -1,11 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Mail, Phone, Building2, User } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Building2, User, Edit } from "lucide-react";
 import { resolveCompany } from "@/lib/company";
 import { hasPermission } from "@/lib/permissions";
 import { Permissions } from "@biogrow/permissions";
 import { contactsService } from "@biogrow/crm-core";
 import { Badge } from "@biogrow/ui/components/badge";
+import { Button } from "@biogrow/ui/components/button";
 import { Avatar } from "@biogrow/ui/components/avatar";
 import { formatDate } from "@biogrow/ui/lib/utils";
 
@@ -23,6 +24,8 @@ export default async function ContactDetailPage({
   if (!hasPermission(permissions, Permissions.CRM_CONTACTS_VIEW)) {
     redirect(`/${params.company}/dashboard`);
   }
+
+  const canEdit = hasPermission(permissions, Permissions.CRM_CONTACTS_EDIT);
 
   const contact = await contactsService.getById(params.id, company.id);
   if (!contact) notFound();
@@ -55,7 +58,17 @@ export default async function ContactDetailPage({
               )}
             </div>
           </div>
-          {contact.isPrimary && <Badge variant="success">Primary</Badge>}
+          <div className="flex items-center gap-2">
+            {contact.isPrimary && <Badge variant="success">Primary</Badge>}
+            {canEdit && (
+              <Link href={`/${params.company}/crm/contacts/${params.id}/edit`}>
+                <Button variant="outline" size="sm">
+                  <Edit className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 

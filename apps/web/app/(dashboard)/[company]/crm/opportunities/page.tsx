@@ -53,7 +53,9 @@ export default async function OpportunitiesPage({ params }: { params: { company:
           </p>
         </div>
         {canCreate && (
-          <Button size="sm"><Plus className="h-4 w-4" />New Opportunity</Button>
+          <Link href={`/${params.company}/crm/opportunities/new`}>
+            <Button size="sm"><Plus className="h-4 w-4" />New Opportunity</Button>
+          </Link>
         )}
       </div>
 
@@ -62,7 +64,11 @@ export default async function OpportunitiesPage({ params }: { params: { company:
           icon={<Target className="h-7 w-7" />}
           title="No opportunities yet"
           description="Create your first opportunity or convert a lead."
-          action={canCreate ? <Button size="sm"><Plus className="h-4 w-4" />Create opportunity</Button> : undefined}
+          action={canCreate ? (
+            <Link href={`/${params.company}/crm/opportunities/new`}>
+              <Button size="sm"><Plus className="h-4 w-4" />Create opportunity</Button>
+            </Link>
+          ) : undefined}
         />
       ) : (
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">

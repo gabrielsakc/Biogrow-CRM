@@ -7,6 +7,7 @@ import { activitiesService } from "@biogrow/crm-core";
 import { Card, CardContent, CardHeader, CardTitle } from "@biogrow/ui/components/card";
 import { EmptyState } from "@biogrow/ui/feedback/empty-state";
 import { ActivityFeed } from "@/components/crm/activity-feed";
+import { ActivitiesClient } from "@/components/crm/activities-client";
 
 export default async function ActivitiesPage({ params }: { params: { company: string } }) {
 
@@ -15,13 +16,21 @@ export default async function ActivitiesPage({ params }: { params: { company: st
     redirect(`/${params.company}/dashboard`);
   }
 
+  const canCreate = hasPermission(permissions, Permissions.CRM_ACTIVITIES_CREATE);
   const activities = await activitiesService.listRecent(company.id, 50);
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-bold text-gray-900">Activities</h1>
-        <p className="text-sm text-gray-500 mt-0.5">{activities.length} recent activities</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Activities</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{activities.length} recent activities</p>
+        </div>
+        <ActivitiesClient
+          companyId={company.id}
+          companySlug={params.company}
+          canCreate={canCreate}
+        />
       </div>
 
       <Card>
