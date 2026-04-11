@@ -3,21 +3,27 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800",
-        secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300",
-        outline: "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100",
-        ghost: "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-        destructive: "bg-red-600 text-white hover:bg-red-700 active:bg-red-800",
-        link: "text-emerald-600 underline-offset-4 hover:underline",
+        default:
+          "bg-emerald-600 text-white shadow-sm shadow-emerald-600/20 hover:bg-emerald-500 hover:shadow-emerald-500/30 active:bg-emerald-700 active:scale-[0.98]",
+        secondary:
+          "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 active:scale-[0.98]",
+        outline:
+          "border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 active:scale-[0.98]",
+        ghost:
+          "text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200",
+        destructive:
+          "bg-red-600 text-white shadow-sm shadow-red-600/20 hover:bg-red-500 active:bg-red-700 active:scale-[0.98]",
+        link:
+          "text-emerald-600 underline-offset-4 hover:underline hover:text-emerald-700",
       },
       size: {
         default: "h-9 px-4 py-2",
         sm: "h-8 px-3 text-xs",
-        lg: "h-11 px-6",
+        lg: "h-11 px-6 text-base",
         icon: "h-9 w-9",
         "icon-sm": "h-7 w-7",
       },
