@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { COMPANY_CONFIGS } from "@/company-configs";
 
+// Set to false to bypass authentication for internal use
+const REQUIRE_AUTH = false;
+
 function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie
@@ -20,13 +23,20 @@ function deleteCookie(name: string) {
 export default function SelectCompanyPage() {
   const router = useRouter();
   const [userName, setUserName] = useState<string>("Usuario");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const session = getCookie("biogrow_session");
-    if (!session || session !== "authenticated") {
-      router.replace("/sign-in");
-      return;
+    setMounted(true);
+
+    // Skip auth check if REQUIRE_AUTH is false
+    if (REQUIRE_AUTH) {
+      const session = getCookie("biogrow_session");
+      if (!session || session !== "authenticated") {
+        router.replace("/sign-in");
+        return;
+      }
     }
+
     const user = getCookie("biogrow_user");
     if (user) setUserName(user);
   }, [router]);
@@ -38,6 +48,15 @@ export default function SelectCompanyPage() {
   }
 
   const companies = Object.values(COMPANY_CONFIGS);
+
+  // Don't render until client-side hydration is complete
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
