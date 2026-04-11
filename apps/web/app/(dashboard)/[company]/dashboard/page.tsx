@@ -1,37 +1,61 @@
 import { redirect } from "next/navigation";
-import { db } from "@biogrow/database";
-import { DashboardCards } from "@/components/dashboard-cards";
-import { PipelineChart } from "@/components/pipeline-chart";
-import { RecentActivities } from "@/components/recent-activities";
+import { resolveCompany } from "@/lib/company";
+import { hasPermission } from "@/lib/permissions";
+import { Permissions } from "@biogrow/permissions";
+import {
+  dashboardService,
+  activitiesService,
+  pipelineService,
+} from "@biogrow/crm-core";
+import { DashboardClient } from "@/components/dashboard/dashboard-client";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { company: string };
+}) {
+  return { title: `Dashboard — ${params.company}` };
+}
 
 export default async function DashboardPage({
   params,
 }: {
   params: { company: string };
 }) {
-
-  // TODO: Get company stats
-  const company = await db.company.findUnique({
-    where: { slug: params.company },
-  });
+  const { company, permissions } = await resolveCompany(params.company);
 
   if (!company) {
     redirect("/select-company");
   }
 
+  const canViewCRM = hasPermission(permissions, Permissions.CRM_PIPELINE_VIEW);
+  const canCreateLead = hasPermission(permissions, Permissions.CRM_LEADS_CREATE);
+  const canCreateOpp = hasPermission(permissions, Permissions.CRM_OPPORTUNITIES_CREATE);
+  const canCreateTask = hasPermission(permissions, Permissions.CRM_ACTIVITIES_CREATE);
+
+  const [kpis, pipeline, recentActivities, stages] = await Promise.all([
+    canViewCRM
+      ? dashboardService.getKPIs(company.id)
+      : Promise.resolve(null),
+    canViewCRM
+      ? dashboardService.getPipelineByStage(company.id)
+      : Promise.resolve([]),
+    canViewCRM
+      ? activitiesService.listRecent(company.id, 8)
+      : Promise.resolve([]),
+    canCreateOpp
+      ? pipelineService.getStages(company.id)
+      : Promise.resolve([]),
+  ]);
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Welcome to {company.name}</p>
-      </div>
-
-      <DashboardCards companyId={company.id} />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PipelineChart companyId={company.id} />
-        <RecentActivities companyId={company.id} />
-      </div>
-    </div>
+    <DashboardClient
+      company={{ id: company.id, name: company.name, slug: company.slug }}
+      kpis={kpis}
+      pipeline={pipeline as any[]}
+      recentActivities={recentActivities as any[]}
+      stages={stages as any[]}
+      permissions={{ canCreateLead, canCreateOpp, canCreateTask }}
+    />
   );
 }
