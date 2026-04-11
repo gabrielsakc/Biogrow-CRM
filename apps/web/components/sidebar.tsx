@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Layers,
   ChevronRight,
+  Calculator,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -157,6 +158,44 @@ export function Sidebar({ companySlug }: SidebarProps) {
           </div>
         ))}
       </nav>
+
+      {/* Manufacturing Tools — Prime Tech Blocks only */}
+      {slug === "prime-blocks" && (
+        <div className="shrink-0 border-t border-white/[0.06] px-3 pt-3 pb-1">
+          <div className="flex items-center gap-2 px-2 mb-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-600">
+              Tools
+            </span>
+            <div className="flex-1 h-px bg-white/[0.04]" />
+          </div>
+          <ul className="space-y-0.5">
+            <li>
+              <Link
+                href={`${base}/eps-calculator`}
+                className={cn(
+                  "group flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-all duration-150",
+                  pathname.startsWith(`${base}/eps-calculator`)
+                    ? "bg-emerald-500/10 text-emerald-400"
+                    : "text-slate-400 hover:text-slate-100 hover:bg-white/[0.05]"
+                )}
+              >
+                <Calculator
+                  className={cn(
+                    "h-4 w-4 shrink-0 transition-colors",
+                    pathname.startsWith(`${base}/eps-calculator`)
+                      ? "text-emerald-400"
+                      : "text-slate-600 group-hover:text-slate-400"
+                  )}
+                />
+                <span className="font-medium">EPS Calculator</span>
+                {pathname.startsWith(`${base}/eps-calculator`) && (
+                  <ChevronRight className="h-3 w-3 ml-auto text-emerald-400/60" />
+                )}
+              </Link>
+            </li>
+          </ul>
+        </div>
+      )}
 
       {/* Bottom Links */}
       <div className="shrink-0 border-t border-white/[0.06] px-3 py-3 space-y-0.5">
