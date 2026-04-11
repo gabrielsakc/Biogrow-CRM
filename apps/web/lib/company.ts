@@ -47,9 +47,13 @@ export async function resolveCompany(slug: string) {
 
       if (company) {
         const role = company.roles[0];
-        const permissions = role
-          ? role.permissions.map((rp) => rp.permission.key)
-          : [];
+        // When auth is not required (dev/demo mode), grant all permissions.
+        // When auth is required, use the role's permissions from the DB.
+        const permissions = !REQUIRE_AUTH
+          ? getAllPermissions()
+          : role
+            ? role.permissions.map((rp) => rp.permission.key)
+            : [];
 
         const config = getCompanyConfig(slug);
 
