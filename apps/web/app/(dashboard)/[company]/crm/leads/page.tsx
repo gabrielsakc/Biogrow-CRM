@@ -75,10 +75,12 @@ export default async function LeadsPage({ params }: { params: { company: string 
           description="Capture your first lead to start building the sales pipeline."
           action={
             canCreate ? (
-              <Button size="sm">
-                <Plus className="h-4 w-4" />
-                Create first lead
-              </Button>
+              <Link href={`/${params.company}/crm/leads/new`}>
+                <Button size="sm">
+                  <Plus className="h-4 w-4" />
+                  Create first lead
+                </Button>
+              </Link>
             ) : undefined
           }
         />
